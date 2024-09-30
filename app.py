@@ -6,6 +6,7 @@ from PyQt6.QtWidgets import (
 )
 from PyQt6.QtGui import QPixmap, QAction, QIcon
 from pages.home import Home
+from pages.level_page import LevelPage
 
 # Only needed for access to command line arguments
 import sys
@@ -18,6 +19,8 @@ app = QApplication(sys.argv)
 class MainWindow(QMainWindow):
     def __init__(self):
         super().__init__()
+
+        self.level_chosen = None
 
         self.setWindowTitle("NihongoMax")
         self.setMinimumSize(QSize(1200,700))
@@ -78,7 +81,9 @@ class MainWindow(QMainWindow):
         print("click", s)
 
     def displayLevelPage(self, level):
-        print(f"Level is {level}")
+        self.level_chosen = level
+        levelPage = LevelPage(level)
+        self.setCentralWidget(levelPage)
 
 window = MainWindow()
 window.show()

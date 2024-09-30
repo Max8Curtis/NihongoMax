@@ -5,6 +5,7 @@ from PyQt6.QtWidgets import (
     QStatusBar
 )
 from PyQt6.QtGui import QPixmap, QAction
+from assets.styles.colors import Color
 
 class LevelButton(QWidget):
     def __init__(self, text, bgroundColor):
@@ -20,6 +21,7 @@ class LevelButton(QWidget):
         margin-right: 5px;
         margin-left: 5px;
         """)
+        
         self.button.setMinimumHeight(150)
         self.button.setMinimumWidth(150)
 
@@ -35,6 +37,7 @@ class Home(QWidget):
         super().__init__()
 
         self.outerContainer = QVBoxLayout()
+        self.colors = Color()
 
         self.headerContainer = QHBoxLayout()
         label1 = QLabel("NihongoMax")
@@ -73,25 +76,16 @@ class Home(QWidget):
         self.headerContainer.setSpacing(20)
 
         self.levelButtonContainer = QHBoxLayout()
-        # self.levelButtonContainer.setAlignment(Qt.AlignmentFlag.AlignCenter)
-        
-        color_codes = ['ade9ff','adb0ff','ffadf1','ffcbad','d0ffad']
-        self.buttons = [LevelButton(f"N{str(i)}",color_codes[i-1]) for i in range(1, 6)]
-
+    
+        self.buttons = [LevelButton(f"N{str(i)}",self.colors.get_level_color(f"N{str(i)}")) for i in range(1, 6)]
 
         for i in range(len(self.buttons)):
-            # self.buttons[i].setAlignment(Qt.AlignmentFlag.AlignCenter)
             self.levelButtonContainer.addWidget(self.buttons[i])
 
-        # levelButtonVContainer = QVBoxLayout()
-        # levelButtonVContainer.addLayout(self.levelButtonContainer)
-        # levelButtonVContainer.setAlignment(Qt.AlignmentFlag.AlignHCenter)
-        
         self.outerContainer.addLayout(self.headerContainer)
 
         self.outerContainer.addLayout(self.levelButtonContainer)
         self.outerContainer.setAlignment(Qt.AlignmentFlag.AlignHCenter)
-        # self.outerContainer.addLayout(levelButtonVContainer)
 
         self.setLayout(self.outerContainer)
 
