@@ -90,7 +90,5 @@ class Home(QWidget):
         self.setLayout(self.outerContainer)
 
     def buttonClicked(self, text):
-        # print(text)
-        # if text == "N5":
         self.parent().displayLevelPage(text)
 

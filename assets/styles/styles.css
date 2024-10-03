@@ -9,3 +9,13 @@ QProgressBar::chunk {
     background-color: #05B8CC;
     width: 20px;
 }
+
+QPushButton {
+    min-height: 50px;
+
+}
+
+.buttonLayout {
+    padding: 20px;
+    color: blue;
+}

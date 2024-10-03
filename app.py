@@ -7,6 +7,7 @@ from PyQt6.QtWidgets import (
 from PyQt6.QtGui import QPixmap, QAction, QIcon
 from pages.home import Home
 from pages.level_page import LevelPage
+from assets.data import LevelMetaData
 
 # Only needed for access to command line arguments
 import sys
@@ -21,6 +22,7 @@ class MainWindow(QMainWindow):
         super().__init__()
 
         self.level_chosen = None
+        self.levelMetaData = LevelMetaData()
 
         self.setWindowTitle("NihongoMax")
         self.setMinimumSize(QSize(1200,700))
@@ -67,6 +69,8 @@ class MainWindow(QMainWindow):
 
     def onHomeButtonClick(self, s):
         print("click", s)
+        homePage = Home()
+        self.setCentralWidget(homePage)
 
     def onFileButtonClick(self, s):
         print("click", s)
