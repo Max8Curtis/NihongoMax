@@ -2,7 +2,7 @@ from PyQt6.QtCore import QSize, Qt
 from PyQt6.QtWidgets import (
     QApplication, QMainWindow, QPushButton, QLabel, 
     QLineEdit, QVBoxLayout, QHBoxLayout, QWidget, QToolBar,
-    QStatusBar
+    QStatusBar, QStackedLayout
 )
 from PyQt6.QtGui import QPixmap, QAction, QIcon
 from pages.home import Home
@@ -20,6 +20,16 @@ app = QApplication(sys.argv)
 class MainWindow(QMainWindow):
     def __init__(self):
         super().__init__()
+        # self.widget = QWidget()
+
+        # self.pageLayout = QStackedLayout()
+        self.homePage = Home()
+        # self.levelPage = LevelPage(None)
+
+        # self.pageLayout.addWidget(self.homePage)
+        # self.pageLayout.addWidget(self.levelPage)
+
+        # self.pageLayout.setCurrentIndex(0)
 
         self.level_chosen = None
         self.levelMetaData = LevelMetaData()
@@ -36,8 +46,12 @@ class MainWindow(QMainWindow):
 
         self.initialiseToolbarButtons()
 
-        homePage = Home()
-        self.setCentralWidget(homePage)
+        # self.widget.setLayout(self.homePage)
+        self.setCentralWidget(self.homePage)
+
+        # self.setStyleSheet(f"""
+ 
+        # """)
 
         self.setStatusBar(QStatusBar(self))
 
@@ -69,8 +83,9 @@ class MainWindow(QMainWindow):
 
     def onHomeButtonClick(self, s):
         print("click", s)
-        homePage = Home()
-        self.setCentralWidget(homePage)
+        self.homePage = Home()
+        self.setCentralWidget(self.homePage)
+        # self.pageLayout.setCurrentIndex(0)
 
     def onFileButtonClick(self, s):
         print("click", s)
@@ -85,8 +100,16 @@ class MainWindow(QMainWindow):
         print("click", s)
 
     def displayLevelPage(self, level):
-        self.level_chosen = level
+        # self.levelPage.setL
+  
+        # self.level_chosen = level
+        # self.levelPage = LevelPage(self.level_chosen)
+
+        # self.pageLayout.addWidget(self.levelPage)
+        # self.pageLayout.setCurrentIndex(1)
         levelPage = LevelPage(level)
+        # widget = QWidget()
+        # widget.setLayout(levelPage)
         self.setCentralWidget(levelPage)
 
 window = MainWindow()

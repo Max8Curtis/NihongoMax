@@ -4,8 +4,11 @@ from PyQt6.QtWidgets import (
     QLineEdit, QVBoxLayout, QHBoxLayout, QWidget, QToolBar,
     QStatusBar
 )
-from PyQt6.QtGui import QPixmap, QAction
+from PyQt6.QtGui import QPixmap, QAction, QCursor
+from PyQt6 import QtCore
 from assets.styles.colors import Color
+
+styles = "assets\styles\styles.css"
 
 class LevelButton(QWidget):
     def __init__(self, text, bgroundColor):
@@ -21,11 +24,14 @@ class LevelButton(QWidget):
         margin-right: 5px;
         margin-left: 5px;
         """)
+
+        print(bgroundColor)
         
         self.button.setMinimumHeight(150)
         self.button.setMinimumWidth(150)
 
         self.button.clicked.connect(self.buttonClicked)
+        self.button.setCursor(QCursor(QtCore.Qt.CursorShape.PointingHandCursor))
 
     def buttonClicked(self):
         self.parent().buttonClicked(self.text)
@@ -87,7 +93,11 @@ class Home(QWidget):
         self.outerContainer.addLayout(self.levelButtonContainer)
         self.outerContainer.setAlignment(Qt.AlignmentFlag.AlignHCenter)
 
+        with open(styles, 'r') as f:
+            self.setStyleSheet(f.read())
+
         self.setLayout(self.outerContainer)
+
 
     def buttonClicked(self, text):
         self.parent().displayLevelPage(text)

@@ -3,6 +3,7 @@ QProgressBar {
     border-radius: 5px;
     text-align: center;
     font-family: Titillium;
+    min-width: 300px;
 }
 
 QProgressBar::chunk {
@@ -10,12 +11,34 @@ QProgressBar::chunk {
     width: 20px;
 }
 
-QPushButton {
+/* QPushButton {
     min-height: 50px;
+    font-size: 20px;
+}
 
+QPushButton:hover {
+    background-color: #85E0FF;
+
+} */
+
+.levelButton {
+    min-height: 50px;
+    font-size: 20px;
+}
+
+.levelButton:hover {
+    background-color: #CCF4FF;
 }
 
 .buttonLayout {
     padding: 20px;
     color: blue;
+    background-color: blue;
+}
+
+.outerContainer {
+    /* padding: 40px; */
+    margin: 40px;
+    /* align-items: center;
+    justify-content: center; */
 }
