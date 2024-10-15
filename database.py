@@ -1,5 +1,6 @@
 import sqlite3
 import pandas as pd
+import numpy as np
 
 class Database:
     def __init__(self):
@@ -41,10 +42,12 @@ class Database:
         result = self.cursor.execute(query).fetchall()
         return result
     
+
+    
     def get_max_grammar_id(self):
         max_grammar_id_query = "SELECT grammar_id FROM grammars ORDER BY grammar_id DESC LIMIT 1;"
         max_grammar_id = self.cursor.execute(max_grammar_id_query).fetchall() # Returns list of tuple
-        print(max_grammar_id)
+        # print(max_grammar_id)
         if len(max_grammar_id) == 0:
             return 0
 
@@ -53,20 +56,35 @@ class Database:
     def get_max_example_id(self):
         max_example_id_query = "SELECT example_id FROM examples ORDER BY example_id DESC LIMIT 1;"
         max_example_id = self.cursor.execute(max_example_id_query).fetchall() # Returns list of tuple
-        print(max_example_id)
+        # print(max_example_id)
         if len(max_example_id) == 0:
             return 0
         
-        return max_example_id
+        return max_example_id[0][0]
     
+    def clear_tables(self):
+        query = "delete * from grammars;"
+        self.cursor.execute(query)
+        self.sqliteConnection.commit()
+
+        query = "delete * from examples;"
+        self.cursor.execute(query)
+        self.sqliteConnection.commit()
+
     def insert_grammar(self, file, level):
         df = pd.read_csv(file, names=["grammar", "definition", "en", "jp", "hg", "url", "id"])
         grammar_points = pd.unique(df["grammar"])
 
+        print(grammar_points)
+
+        query = "BEGIN TRANSACTION;" # Perform batch insert to avoid half-complete insert in case of failure
+        self.cursor.execute(query)
         
 
         for i in range(grammar_points.shape[0]):
-            grammar_point = df.iloc[i]
+            examples = df[df["grammar"] == grammar_points[i]]
+            # index = np.where(df['grammar'] == grammar_points[i])[0]
+            grammar_point = examples.iloc[0]
 
             query = f"""SELECT level_id FROM levels WHERE level = '{level}';"""
             level_id = self.cursor.execute(query).fetchall()[0][0]
@@ -76,19 +94,24 @@ class Database:
             query = """INSERT INTO grammars (grammar_id, grammar_en, grammar_jp, image_url, level_id) VALUES (?,?,?,?,?);"""
 
             self.cursor.execute(query, values)
-            self.sqliteConnection.commit()
+            # self.sqliteConnection.commit()
 
                        
-            examples = df[df["grammar"] == grammar_point["grammar"]] # Get all examples for current grammar point
+            # examples = df[df["grammar"] == grammar_point["grammar"]] # Get all examples for current grammar point
 
             for j in range(examples.shape[0]):
                 example_id = self.get_max_example_id() + 1
-                example = [example_id, examples["jp"], examples["hg"], examples["en"], grammar_id]
-                
-                query = "INSERT INTO examples (example_id, example_jp, example_hg, example_en, grammar_id) VALUES (?,?,?,?,?;)"
+                values = [example_id, examples["jp"].iloc[j], examples["hg"].iloc[j], examples["en"].iloc[j], grammar_id]
+                # print(values)
+
+                query = "INSERT INTO examples (example_id, example_jp, example_hg, example_en, grammar_id) VALUES (?,?,?,?,?);"
 
                 self.cursor.execute(query, values)
-                self.sqliteConnection.commit()
+                # self.sqliteConnection.commit()
+
+        query = "COMMIT;"
+        self.cursor.execute(query)
+        self.sqliteConnection.commit()
 
     def createTables(self):
         levels_table = """ CREATE TABLE IF NOT EXISTS levels (
@@ -194,12 +217,28 @@ class Database:
         self.sqliteConnection.commit()
 
 
+    def get_grammars(self, level: str):
+        query = f"SELECT * FROM grammars WHERE level_id IN (SELECT level_id FROM levels WHERE level = '{level.upper()}')"
+
+        df = pd.read_sql_query(query, self.sqliteConnection)
+        return df
+
+    def get_examples(self, grammar_id: int):
+        query = f"SELECT * FROM examples WHERE grammar_id = {grammar_id}"
+
+        df = pd.read_sql_query(query, self.sqliteConnection)
+        return df
+
 
 if __name__ == "__main__":
     db = Database()
-    # db.createTables()
+    
     # db.drop_tables()
     # db.createTables()
-    # print(db.insert_levels())
-    db.insert_grammar("assets//grammar//n3.csv", "N3")
+    # db.insert_levels()
+    # db.createTables()
+    # print()
+    # db.insert_grammar("assets//grammar//n1.csv", "N1")
+    # db.get_grammars("n1")
+    db.get_examples(15)
     db.close()

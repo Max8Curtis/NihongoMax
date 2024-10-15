@@ -23,7 +23,8 @@ QPushButton:hover {
 
 .levelButton {
     min-height: 50px;
-    font-size: 20px;
+    font-size: 22px;
+    min-width: 425px;
 }
 
 .levelButton:hover {

@@ -33,8 +33,9 @@ class LevelButton(QWidget):
         self.button.clicked.connect(self.buttonClicked)
         self.button.setCursor(QCursor(QtCore.Qt.CursorShape.PointingHandCursor))
 
+
     def buttonClicked(self):
-        self.parent().buttonClicked(self.text)
+        self.parent().displayLevelPage(self.text)
 
 
 
@@ -99,6 +100,9 @@ class Home(QWidget):
         self.setLayout(self.outerContainer)
 
 
-    def buttonClicked(self, text):
+    def displayLevelPage(self, text):
         self.parent().displayLevelPage(text)
+
+    def displayNewLessonPage(self):
+        self.parent().displayNewLessonPage()
 

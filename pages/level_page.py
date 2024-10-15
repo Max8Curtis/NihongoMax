@@ -9,11 +9,27 @@ from PyQt6 import QtCore
 from assets.styles.colors import Color
 
 styles = "assets\styles\styles.css"
+buttons = {1: "New lesson", 2: "Daily review", 3: "Translation quiz", 4: "Word match", 5: "Word fill"}
 
 
 class ModeSelectButton(QWidget):
-    def __init__(self, text):
+    def __init__(self, id):
         super().__init__()
+
+        self.id = id
+
+        self.button = QPushButton(buttons[self.id], self)
+
+        self.button.setProperty("class", "levelButton")
+        self.button.setProperty("id", str(self.id))
+        self.button.setCursor(QCursor(QtCore.Qt.CursorShape.PointingHandCursor))
+        self.button.clicked.connect(self.buttonClicked)
+
+        with open(styles, 'r') as f:
+            self.setStyleSheet(f.read())
+
+    def buttonClicked(self):
+        self.parent().buttonClicked(self.id)
 
 
 
@@ -24,7 +40,7 @@ class LevelPage(QWidget):
 
         self.level = level
         self.colors = Color()
-        self.buttonLabels = {1: "New lesson", 2: "Daily review", 3: "Translation quiz", 4: "Word match", 5: "Word fill"}
+        
         self.buttons = []
         print(self.level)
 
@@ -162,17 +178,17 @@ class LevelPage(QWidget):
 
         self.buttonLayout = QGridLayout()
         self.buttonLayout.setProperty("class", "buttonLayout")
-        for i in range(len(list(self.buttonLabels.keys()))):
-            buttonLabel = self.buttonLabels[i+1]
-            self.buttons.append(QPushButton(buttonLabel, self))
-            self.buttons[i].setProperty("class", "levelButton")
-            self.buttons[i].setCursor(QCursor(QtCore.Qt.CursorShape.PointingHandCursor))
+        for b in list(buttons.keys()):
+            self.buttons.append(ModeSelectButton(b))
+            
 
         self.buttonLayout.addWidget(self.buttons[0], 0, 2, 1, 3)
         self.buttonLayout.addWidget(self.buttons[1], 2, 0, 1, 3)
         self.buttonLayout.addWidget(self.buttons[2], 2, 4, 1, 3)
         self.buttonLayout.addWidget(self.buttons[3], 4, 0, 1, 3)
         self.buttonLayout.addWidget(self.buttons[4], 4, 4, 1, 3)
+
+        # self.buttonLayout.setAlignment(Qt.AlignmentFlag.AlignHCenter)
 
 
 
@@ -192,4 +208,8 @@ class LevelPage(QWidget):
         dudContainer.addLayout(self.outerContainer)
         # self.setLayout(self.outerContainer)
         self.setLayout(dudContainer)
+
+    def buttonClicked(self, id):
+        if id == 1:
+            self.parent().displayNewLessonPage()
         
