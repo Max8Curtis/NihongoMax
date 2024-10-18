@@ -164,7 +164,7 @@ class Database:
             FOREIGN KEY (grammar_id) REFERENCES grammar(grammar_id)
         ) WITHOUT ROWID;"""
 
-        kanji_table = """ CREATE TABLE IF NOT EXISTS kanji (
+        kanji_table = """ CREATE TABLE IF NOT EXISTS kanjis (
             kanji_id INTEGER NOT NULL,
             kanji VARCHAR(10) NOT NULL,
             onyomi VARCHAR(10) NOT NULL,
@@ -176,6 +176,33 @@ class Database:
             FOREIGN KEY (level_id) REFERENCES levels(level_id)
         ) WITHOUT ROWID;"""
 
+        users_table = """ CREATE TABLE IF NOT EXISTS users (
+            user_id INTEGER NOT NULL,
+            date_joined TEXT NOT NULL,
+            PRIMARY KEY (user_id)
+        );"""
+
+        user_grammars_table = """ CREATE TABLE IF NOT EXISTS user_grammars (
+            user_id INTEGER NOT NULL,
+            grammar_id INTEGER NOT NULL,
+            FOREIGN KEY (user_id) REFERENCES users (user_id),
+            FOREIGN KEY (grammar_id) REFERENCES grammars (grammar_id)
+        );"""
+
+        user_words_table = """ CREATE TABLE IF NOT EXISTS user_words (
+            user_id INTEGER NOT NULL,
+            word_id INTEGER NOT NULL,
+            FOREIGN KEY (user_id) REFERENCES users (user_id),
+            FOREIGN KEY (word_id) REFERENCES words (word_id)
+        );"""
+
+        user_kanjis_table = """ CREATE TABLE IF NOT EXISTS user_kanjis (
+            user_id INTEGER NOT NULL,
+            kanji_id INTEGER NOT NULL,
+            FOREIGN KEY (user_id) REFERENCES users (user_id),
+            FOREIGN KEY (kanji_id) REFERENCES kanjis (kanji_id)
+        );"""
+
         self.cursor.execute(levels_table)
         self.cursor.execute(words_table)
         self.cursor.execute(types_table)
@@ -183,6 +210,11 @@ class Database:
         self.cursor.execute(grammars_table)
         self.cursor.execute(examples_table)
         self.cursor.execute(kanji_table)
+        self.cursor.execute(users_table)
+        self.cursor.execute(user_grammars_table)
+        self.cursor.execute(user_words_table)
+        self.cursor.execute(user_kanjis_table)
+
 
         result = self.cursor.fetchall()
         print(result)
@@ -196,7 +228,7 @@ class Database:
         self.cursor.execute(query)
         self.sqliteConnection.commit()
 
-        query = "DROP TABLE IF EXISTS kanji"
+        query = "DROP TABLE IF EXISTS kanjis"
         self.cursor.execute(query)
         self.sqliteConnection.commit()
 
@@ -216,6 +248,35 @@ class Database:
         self.cursor.execute(query)
         self.sqliteConnection.commit()
 
+        query = "DROP TABLE IF EXISTS users"
+        self.cursor.execute(query)
+        self.sqliteConnection.commit()
+
+        query = "DROP TABLE IF EXISTS user_grammars"
+        self.cursor.execute(query)
+        self.sqliteConnection.commit()
+
+        query = "DROP TABLE IF EXISTS user_words"
+        self.cursor.execute(query)
+        self.sqliteConnection.commit()
+
+        query = "DROP TABLE IF EXISTS user_kanjis"
+        self.cursor.execute(query)
+        self.sqliteConnection.commit()
+
+    def add_user_grammar(self, grammar: int, user: int):
+        query = f"INSERT INTO user_grammars (user_id, grammar_id) VALUES ({user}, {grammar});"
+
+        self.cursor.execute(query)
+        self.sqliteConnection.commit()
+
+        return True
+
+    def get_grammars(self, level: str, user: int):
+        query = f"SELECT * FROM grammars WHERE grammar_id IN (SELECT grammar_id FROM user_grammars WHERE user_id = {user})"
+
+        df = pd.read_sql_query(query, self.sqliteConnection)
+        return df
 
     def get_grammars(self, level: str):
         query = f"SELECT * FROM grammars WHERE level_id IN (SELECT level_id FROM levels WHERE level = '{level.upper()}')"
@@ -228,17 +289,69 @@ class Database:
 
         df = pd.read_sql_query(query, self.sqliteConnection)
         return df
+    
+    def get_num_grammars_at_level(self, level: str):
+        try:
+            query = f"SELECT count(*) FROM grammars WHERE level_id IN (SELECT level_id FROM levels WHERE level = '{level}');"
+
+            result = self.cursor.execute(query).fetchall()[0][0]
+            return result
+        except Exception as e:
+            return None
+    
+    def get_num_kanjis_at_level(self, level: str):
+        try:
+            query = f"SELECT count(*) FROM kanjis WHERE level_id IN (SELECT level_id FROM levels WHERE level = '{level}');"
+
+            result = self.cursor.execute(query).fetchall()[0][0]
+            return result
+        except Exception as e:
+            return None
+    
+    def get_num_words_at_level(self, level: str):
+        try:
+            query = f"SELECT count(*) FROM words WHERE level_id IN (SELECT level_id FROM levels WHERE level = '{level}');"
+
+            result = self.cursor.execute(query).fetchall()[0][0]
+            return result
+        except Exception as e:
+            return None
+        
+    def get_num_grammars_at_level_user(self, level: str, user: int):
+        try:
+            query = f"SELECT count(*) FROM user_grammars WHERE user_id = {user} AND grammar_id IN (SELECT grammar_id FROM grammars WHERE level = {level});"
+            result = self.cursor.execute(query).fetchall()[0][0]
+            return result
+        except Exception as e:
+            return None
+        
+    def get_num_words_at_level_user(self, level: str, user: int):
+        try:
+            query = f"SELECT count(*) FROM user_words WHERE user_id = {user} AND word_id IN (SELECT word_id FROM words WHERE level = {level});"
+            result = self.cursor.execute(query).fetchall()[0][0]
+            return result
+        except Exception as e:
+            return None
+        
+    def get_num_kanjis_at_level_user(self, level: str, user: int):
+        try:
+            query = f"SELECT count(*) FROM user_kanjis WHERE user_id = {user} AND kanji_id IN (SELECT kanji_id FROM kanjis WHERE level = {level});"
+            result = self.cursor.execute(query).fetchall()[0][0]
+            return result
+        except Exception as e:
+            return None
+
 
 
 if __name__ == "__main__":
     db = Database()
     
     # db.drop_tables()
-    # db.createTables()
+    db.createTables()
     # db.insert_levels()
     # db.createTables()
     # print()
     # db.insert_grammar("assets//grammar//n1.csv", "N1")
     # db.get_grammars("n1")
-    db.get_examples(15)
+    db.get_num_grammars_at_level('N2')
     db.close()

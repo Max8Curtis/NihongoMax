@@ -7,6 +7,8 @@ from PyQt6.QtWidgets import (
 from PyQt6.QtGui import QPixmap, QAction, QCursor
 from PyQt6 import QtCore
 from assets.styles.colors import Color
+import json
+from database import Database
 
 styles = "assets\styles\styles.css"
 buttons = {1: "New lesson", 2: "Daily review", 3: "Translation quiz", 4: "Word match", 5: "Word fill"}
@@ -37,13 +39,19 @@ class ModeSelectButton(QWidget):
 class LevelPage(QWidget):
     def __init__(self, level):
         super().__init__()
+        self.user = 1
 
-        self.level = level
+        self.level = level.upper()
         self.colors = Color()
         
         self.buttons = []
+        self.progress_information = {"grammar": 0, "words": 0, "kanji": 0}
+        self.total_information = {"grammar" : 0, "words": 0, "kanji": 0}
         print(self.level)
 
+        self.db = Database()
+        self.initProgressInformation()
+        
 
         print(self.colors.get_level_color(self.level))
 
@@ -85,13 +93,13 @@ class LevelPage(QWidget):
         
         self.wordsProgressBar.setMinimum(0)
         self.wordsProgressBar.setMaximum(100)
-        self.wordsProgressBar.setValue(50)
+        self.wordsProgressBar.setValue(self.progress_information["words"]//self.total_information["words"]*100)
         self.wordsProgressBar.setTextVisible(False)
 
         self.wordsLabel = QLabel("Words learnt", self)
         words_learnt = 150
         words_count = 1000
-        self.wordsLearnCounter = QLabel(f"{words_learnt}/{words_count}")
+        self.wordsLearnCounter = QLabel(f'{self.progress_information["words"]}/{self.total_information["words"]}')
 
         self.wordsProgressBarSubContainer = QHBoxLayout()
 
@@ -114,13 +122,13 @@ class LevelPage(QWidget):
 
         self.kanjiProgressBar.setMinimum(0)
         self.kanjiProgressBar.setMaximum(100)
-        self.kanjiProgressBar.setValue(50)
+        self.kanjiProgressBar.setValue(self.progress_information["kanji"]//self.total_information["kanji"]*100)
         self.kanjiProgressBar.setTextVisible(False)
 
         self.kanjiLabel = QLabel("Kanji learnt", self)
         kanji_learnt = 100
         kanji_count = 500
-        self.kanjiLearnCounter = QLabel(f"{kanji_learnt}/{kanji_count}")
+        self.kanjiLearnCounter = QLabel(f'{self.progress_information["kanji"]}/{self.total_information["kanji"]}')
 
         self.kanjiProgressBarSubContainer = QHBoxLayout()
 
@@ -141,13 +149,13 @@ class LevelPage(QWidget):
 
         self.grammarProgressBar.setMinimum(0)
         self.grammarProgressBar.setMaximum(100)
-        self.grammarProgressBar.setValue(50)
+        self.grammarProgressBar.setValue(self.progress_information["grammar"]//self.total_information["grammar"]*100)
         self.grammarProgressBar.setTextVisible(False)
 
         self.grammarLabel = QLabel("Grammar learnt", self)
-        grammar_learnt = 50
-        grammar_count = 175
-        self.grammarLearnCounter = QLabel(f"{grammar_learnt}/{grammar_count}")
+        # grammar_learnt = 50
+        # grammar_count = 175
+        self.grammarLearnCounter = QLabel(f'{self.progress_information["grammar"]}/{self.total_information["grammar"]}')
 
         self.grammarProgressBarSubContainer = QHBoxLayout()
 
@@ -209,7 +217,45 @@ class LevelPage(QWidget):
         # self.setLayout(self.outerContainer)
         self.setLayout(dudContainer)
 
+        self.updateProgressBars()
+
+    def initProgressInformation(self):
+        self.num_grammars = self.db.get_num_grammars_at_level(self.level)
+        self.num_words = self.db.get_num_words_at_level(self.level)
+        self.num_kanjis = self.db.get_num_kanjis_at_level(self.level)
+        print(self.num_words)
+        if self.num_grammars is not None and self.num_words is not None and self.num_kanjis is not None:
+            if self.num_grammars == 0:
+                self.total_information["grammar"] = 1
+            else:
+                self.total_information["grammar"] = self.num_grammars
+
+            if self.num_words == 0:
+                self.total_information["words"] = 1
+            else:
+                self.total_information["words"] = self.num_words
+
+            if self.num_kanjis == 0:
+                self.total_information["kanji"] = 1
+            else:
+                self.total_information["kanji"] = self.num_kanjis
+
+        
+        self.grammars_learnt = self.db.get_num_grammars_at_level_user(self.level, self.user)
+        self.words_learnt = self.db.get_num_words_at_level_user(self.level, self.user)
+        self.kanjis_learnt = self.db.get_num_kanjis_at_level_user(self.level, self.user)
+
+        if self.grammars_learnt is not None and self.words_learnt is not None and self.kanjis_learnt is not None:
+            self.progress_information["grammar"] = self.grammars_learnt
+            self.progress_information["words"] = self.words_learnt
+            self.progress_information["kanji"] = self.kanjis_learnt
+
+
     def buttonClicked(self, id):
         if id == 1:
             self.parent().displayNewLessonPage()
         
+    def updateProgressBars(self):
+        self.grammarProgressBar.setValue(self.progress_information["grammar"])
+        self.kanjiProgressBar.setValue(self.progress_information["kanji"])
+        self.wordsProgressBar.setValue(self.progress_information["words"])
