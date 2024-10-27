@@ -43,7 +43,13 @@ class Database:
         return result
     
 
-    
+    def select_random_grammar(self, user: int, level: str):
+        query = f"""SELECT * FROM grammars WHERE grammar_id IN (SELECT grammar_id FROM grammars WHERE level_id = (SELECT level_id FROM levels WHERE level = '{level}')) and grammar_id NOT IN (SELECT grammar_id from user_grammars WHERE user_id = {user}) ORDER BY RANDOM() LIMIT 1;"""
+        result = self.cursor.execute(query).fetchall()
+        print(result)
+
+        return result[0]
+
     def get_max_grammar_id(self):
         max_grammar_id_query = "SELECT grammar_id FROM grammars ORDER BY grammar_id DESC LIMIT 1;"
         max_grammar_id = self.cursor.execute(max_grammar_id_query).fetchall() # Returns list of tuple
@@ -334,6 +340,15 @@ class Database:
         self.sqliteConnection.commit()
 
         return True
+    
+    def get_grammar_info(self, id: int):
+        query = f"""SELECT image_url FROM grammars WHERE grammar_id = {id};"""
+
+        result = self.cursor.execute(query).fetchall()
+        if not result[0][0] is None:
+            return result[0][0]
+        else:
+            return None
 
     def get_grammars(self, level: str, user: int):
         query = f"SELECT * FROM grammars WHERE grammar_id IN (SELECT grammar_id FROM user_grammars WHERE user_id = {user})"
