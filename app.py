@@ -8,7 +8,7 @@ from PyQt6.QtGui import QPixmap, QAction, QIcon
 from pages.home import Home
 from pages.level_page import LevelPage
 from assets.data import LevelMetaData
-from pages.tools import LessonPage
+from pages.lesson_page import LessonPage
 
 # Only needed for access to command line arguments
 import sys
@@ -115,8 +115,9 @@ class MainWindow(QMainWindow):
 
     def displayNewLessonPage(self):
 
-        lessonPage = LessonPage()
+        lessonPage = LessonPage(self.level_chosen)
         print("New lesson page!")
+        self.setCentralWidget(lessonPage)
 
 window = MainWindow()
 window.show()

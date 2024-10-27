@@ -42,6 +42,18 @@ class Database:
         result = self.cursor.execute(query).fetchall()
         return result
     
+    def set_user_grammar_status(self, user: int, grammar: int, state: bool):
+        print(state)
+        values = [user, grammar]
+        if state is True:
+            query = f"""INSERT OR IGNORE INTO user_grammars (user_id, grammar_id) VALUES (?,?)"""
+            self.cursor.execute(query, values)
+            self.sqliteConnection.commit()
+        else:
+            query = f"""DELETE FROM user_grammars WHERE user_id = {user} and grammar_id = {grammar};"""
+            self.cursor.execute(query)
+            self.sqliteConnection.commit()
+
 
     def select_random_grammar(self, user: int, level: str):
         query = f"""SELECT * FROM grammars WHERE grammar_id IN (SELECT grammar_id FROM grammars WHERE level_id = (SELECT level_id FROM levels WHERE level = '{level}')) and grammar_id NOT IN (SELECT grammar_id from user_grammars WHERE user_id = {user}) ORDER BY RANDOM() LIMIT 1;"""
@@ -254,6 +266,7 @@ class Database:
         user_grammars_table = """ CREATE TABLE IF NOT EXISTS user_grammars (
             user_id INTEGER NOT NULL,
             grammar_id INTEGER NOT NULL,
+            PRIMARY KEY (user_id, grammar_id),
             FOREIGN KEY (user_id) REFERENCES users (user_id),
             FOREIGN KEY (grammar_id) REFERENCES grammars (grammar_id)
         );"""
@@ -430,7 +443,7 @@ if __name__ == "__main__":
     # db.createTables()
     # print()
     # db.insert_grammar("assets//grammar//n1.csv", "N1")
-    db.insert_words_batch("assets//words//n2.csv", "N2")
+    # db.insert_words_batch("assets//words//n2.csv", "N2")
     # db.get_grammars("n1")
     db.get_num_grammars_at_level('N2')
     db.close()
