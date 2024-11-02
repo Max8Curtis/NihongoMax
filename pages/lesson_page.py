@@ -52,9 +52,6 @@ class SelectGrammarDialog(QDialog):
         self.setLayout(layout)
 
     def accept(self):
-        print(self.combobox.currentText())
-        print(self.combobox.currentIndex())
-        print(self.grammars.iloc[self.combobox.currentIndex()])
         self.parent().setGrammarPoint(self.grammars.iloc[self.combobox.currentIndex()])
         self.close()
 
@@ -68,12 +65,10 @@ class SelectGrammarDialog(QDialog):
 
 
     def populateComboBox(self):
-        print(self.hide_completed)
         df = self.db.get_user_grammars_all(self.level, self.user)
         if self.hide_completed: # Only display grammar points the user has not completed
             df = df[df["completed"] == False]
-        
-        print(df)
+
         for i in range(self.combobox.count()):
             self.combobox.removeItem(0)    
         self.combobox.addItems([f'{df["grammar_jp"].iloc[i]} | {df["grammar_en"].iloc[i]}' for i in range(df.shape[0])])
@@ -148,7 +143,6 @@ class GrammarList:
         if not self.getIsEnd():
             
             self.setCurrent(self.current + 1)
-            print(self.getCurrent())
             return self.getCurrent()
         else:
             return None
@@ -254,8 +248,6 @@ class LessonPage(QWidget):
 
     def display(self, id, img, title, completed, idx):
         if not idx == 0:
-            print(idx)
-            print(img)
             response = requests.get(img, stream=True)
             with open('img.png', 'wb') as out_file:
                 shutil.copyfileobj(response.raw, out_file)
@@ -286,7 +278,6 @@ class LessonPage(QWidget):
 
     def next(self):
         next_grammar = self.grammar_list.loadNext()
-        print(next_grammar)
         if not next_grammar is None:
             self.display(*next_grammar) # Send result tuple as unpacked tuple
             
