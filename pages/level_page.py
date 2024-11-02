@@ -239,7 +239,7 @@ class LevelPage(QWidget):
                 self.total_information["kanji"] = 1
             else:
                 self.total_information["kanji"] = self.num_kanjis
-
+ 
         
         self.grammars_learnt = self.db.get_num_grammars_at_level_user(self.level, self.user)
         self.words_learnt = self.db.get_num_words_at_level_user(self.level, self.user)

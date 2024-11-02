@@ -12,6 +12,8 @@ class Database:
             result = self.cursor.fetchall()
             print('SQLite Version is {}'.format(result))
 
+            self.grammar_schema = {"grammar_id": None, "grammar_en": None, "grammar_jp": None, "image_url": None, "level_id": None}
+
         except sqlite3.Error as error:
             print('Error occurred - ', error)
 
@@ -42,9 +44,29 @@ class Database:
         result = self.cursor.execute(query).fetchall()
         return result
     
+    def get_next_grammar(self, user: int, level: str, grammar: int):
+        if grammar is None:
+            query = f"""SELECT * FROM grammars WHERE grammar_id IN (SELECT grammar_id FROM grammars WHERE level_id = (SELECT level_id FROM levels WHERE level = '{level}')) and grammar_id NOT IN (SELECT grammar_id from user_grammars WHERE user_id = {user}) ORDER BY grammar_id ASC LIMIT 1;"""
+            result = self.cursor.execute(query).fetchall()
+            if result == []: # No remaining grammar points to study
+                    return None
+        else:
+            query = f"""SELECT * FROM grammars WHERE grammar_id IN (SELECT grammar_id FROM grammars WHERE level_id = (SELECT level_id FROM levels WHERE level = '{level}')) and grammar_id NOT IN (SELECT grammar_id from user_grammars WHERE user_id = {user}) and grammar_id > {grammar} ORDER BY grammar_id ASC LIMIT 1;"""
+            result = self.cursor.execute(query).fetchall()
+            if result == []: # No remaining grammar points with higher ids than the current grammar
+                # Check grammar points with lower ids
+                query = f"""SELECT * FROM grammars WHERE grammar_id IN (SELECT grammar_id FROM grammars WHERE level_id = (SELECT level_id FROM levels WHERE level = '{level}')) and grammar_id NOT IN (SELECT grammar_id from user_grammars WHERE user_id = {user}) and grammar_id < {grammar} ORDER BY grammar_id ASC LIMIT 1;"""
+                result = self.cursor.execute(query).fetchall()
+                if result == []: # No remaining grammar points to study
+                    return None
+
+        return result[0]
+
     def set_user_grammar_status(self, user: int, grammar: int, state: bool):
         print(state)
-        values = [user, grammar]
+
+        values = [int(user), int(grammar)]
+        print(values)
         if state is True:
             query = f"""INSERT OR IGNORE INTO user_grammars (user_id, grammar_id) VALUES (?,?)"""
             self.cursor.execute(query, values)
@@ -58,7 +80,6 @@ class Database:
     def select_random_grammar(self, user: int, level: str):
         query = f"""SELECT * FROM grammars WHERE grammar_id IN (SELECT grammar_id FROM grammars WHERE level_id = (SELECT level_id FROM levels WHERE level = '{level}')) and grammar_id NOT IN (SELECT grammar_id from user_grammars WHERE user_id = {user}) ORDER BY RANDOM() LIMIT 1;"""
         result = self.cursor.execute(query).fetchall()
-        print(result)
 
         return result[0]
 
@@ -355,17 +376,32 @@ class Database:
         return True
     
     def get_grammar_info(self, id: int):
-        query = f"""SELECT image_url FROM grammars WHERE grammar_id = {id};"""
+        query = f"""SELECT * FROM grammars WHERE grammar_id = {id};"""
 
         result = self.cursor.execute(query).fetchall()
         if not result[0][0] is None:
-            return result[0][0]
+            grammar = self.grammar_schema
+            grammar["grammar_id"], grammar["grammar_en"], grammar["grammar_jp"], grammar["image_url"], grammar["level_id"] = result[0][0],result[0][1],result[0][2],result[0][3],result[0][4]
+            return grammar
         else:
             return None
 
-    def get_grammars(self, level: str, user: int):
+    def get_user_grammars_all(self, level:str, user:int):
+        level_grammars = self.get_grammars(level)
+        user_grammars = self.get_user_grammars_completed(level, user)
+        level_grammars['completed'] = level_grammars['grammar_id'].isin(user_grammars['grammar_id']) # Add new column indicating if each grammar point has been completed by user
+
+        return level_grammars
+
+    def get_user_grammars_completed(self, level: str, user: int):
         query = f"SELECT * FROM grammars WHERE grammar_id IN (SELECT grammar_id FROM user_grammars WHERE user_id = {user})"
 
+        df = pd.read_sql_query(query, self.sqliteConnection)
+        return df
+    
+    def get_user_grammars_not_completed(self, level: str, user: int):
+        query = f"""SELECT * FROM grammars WHERE level_id IN (SELECT level_id FROM levels WHERE level = '{level.upper()}') AND grammar_id NOT IN (SELECT grammar_id FROM user_grammars WHERE user_id = {user});"""
+        
         df = pd.read_sql_query(query, self.sqliteConnection)
         return df
 
@@ -442,8 +478,9 @@ if __name__ == "__main__":
     # db.insert_levels()
     # db.createTables()
     # print()
-    # db.insert_grammar("assets//grammar//n1.csv", "N1")
+    # db.insert_grammar("assets//grammar//n3.csv", "N3")
     # db.insert_words_batch("assets//words//n2.csv", "N2")
     # db.get_grammars("n1")
-    db.get_num_grammars_at_level('N2')
+    # db.get_num_grammars_at_level('N2')
+    db.get_user_grammars_not_completed('n3', 1)
     db.close()
