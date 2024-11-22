@@ -50,6 +50,7 @@ class ExamplesField(QWidget):
         self.examples = None
         self.jp_hidden = False
         self.en_hidden = False
+        
         self.scroll = QScrollArea()
         self.scroll.setProperty("class", "scrollArea")
         self.widget = QWidget()
@@ -86,8 +87,18 @@ class ExamplesField(QWidget):
 
             for i in range(len(self.examples)):
                 jp = QLabel(self.examples[i].getJp(), alignment=Qt.AlignmentFlag.AlignCenter)
+                jp.setWordWrap(True)
+                # set font of japanese text
+                font = jp.font()
+                font.setPointSize(14)
+                jp.setFont(font)
                 self.vbox.addWidget(jp)
                 en = QLabel(self.examples[i].getEn(), alignment=Qt.AlignmentFlag.AlignCenter)
+                en.setWordWrap(True)
+                # set font of English text
+                font = en.font()
+                font.setPointSize(14)
+                en.setFont(font)
                 self.vbox.addWidget(en)
                 blank = QLabel()
                 self.vbox.addWidget(blank)
@@ -142,10 +153,11 @@ class SelectGrammarField(QWidget):
 
         self.outer_container.addWidget(self.title)
 
-        self.random_btn = QPushButton('randomise')
+        self.random_btn = QPushButton('Randomise')
         self.random_btn.setMaximumWidth(100)
         self.random_btn.setProperty("class", "button")
         self.random_btn.setCursor(QCursor(QtCore.Qt.CursorShape.PointingHandCursor))
+        self.random_btn.clicked.connect(self.randomBtnPressed)
 
         self.outer_container.addWidget(self.random_btn)
 
@@ -161,8 +173,14 @@ class SelectGrammarField(QWidget):
 
         self.setLayout(self.outer_container)
 
+    def randomBtnPressed(self):
+        self.parent().randomBtnPressed()
+
     def rowChanged(self, idx):
         self.parent().grammarSelected(idx)
+
+    def scrollListView(self, idx):
+        self.list.scrollToItem(self.list.item(idx))
 
 class ArrowButton(QAbstractButton):
     def __init__(self, pixmap, dir, parent=None):
@@ -201,9 +219,9 @@ class LessonPage(QWidget):
 
         self.grammar_image = QLabel()
         self.grammar_title = QLabel(self.makeTitle(self.grammars['en'].iloc[0], self.grammars['jp'].iloc[0]))
-        self.grammar_title.setMaximumWidth(600)
+        self.grammar_title.setMaximumWidth(800)
         font = self.grammar_title.font()
-        font.setPointSize(30)
+        font.setPointSize(28)
         self.grammar_title.setFont(font)
 
         self.title_container = QHBoxLayout()
@@ -235,7 +253,7 @@ class LessonPage(QWidget):
         self.grammar_image_container.addWidget(self.grammar_image)
         self.grammar_image_container.addWidget(self.right_arrow)
 
-        self.grammar_image_container.setAlignment(Qt.AlignmentFlag.AlignVCenter)
+        self.grammar_image_container.setAlignment(Qt.AlignmentFlag.AlignCenter)
 
         self.grammar_info_container.addLayout(self.grammar_image_container)
 
@@ -284,6 +302,7 @@ class LessonPage(QWidget):
         self.setLayout(self.outer_container)
 
     def display(self):
+        # updates UI to display the grammar at the index of `self.selected` in the self.grammars dataframe
         response = requests.get(self.grammars['url'].iloc[self.selected], stream=True)
         with open('img.png', 'wb') as out_file:
             shutil.copyfileobj(response.raw, out_file)
@@ -298,6 +317,8 @@ class LessonPage(QWidget):
 
         self.grammar_image.setPixmap(pixmap)
         self.grammar_title.setText(self.makeTitle(self.grammars['en'].iloc[self.selected], self.grammars['jp'].iloc[self.selected]))
+
+        self.selectGrammarField.scrollListView(self.selected)
 
         if self.grammars['completed'].iloc[self.selected]:
             self.check_box.setCheckState(Qt.CheckState.Checked)
@@ -333,6 +354,12 @@ class LessonPage(QWidget):
             self.hide_en_btn.setText('Show En')
             self.examples.hideEn()
 
+    def randomBtnPressed(self):
+        # choose a random grammar to display
+        rand = random.randint(1,self.num_grammars-1)
+        print(rand)
+        self.selected = rand
+        self.display()
 
     def hideEn(self):
         self.examples.hideEn()

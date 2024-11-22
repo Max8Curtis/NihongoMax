@@ -21,6 +21,10 @@ QPushButton:hover {
 
 } */
 
+.button:hover {
+    background-color: #CCF4FF;
+}
+
 .levelButton {
     min-height: 50px;
     font-size: 22px;
@@ -37,9 +41,30 @@ QPushButton:hover {
     background-color: blue;
 }
 
+.lessonButton {
+    min-height: 50px;
+    font-size: 22px;
+    /* min-width: 425px; */
+}
+
+.lessonButton:hover {
+    background-color: #CCF4FF;
+}
+
 .outerContainer {
     /* padding: 40px; */
     margin: 40px;
     /* align-items: center;
     justify-content: center; */
+}
+
+.scrollArea {
+    /* background-color: #818080; */
+    /* border-color: #818080;
+    border-style: solid; */
+    border: 1px solid #818080;
+}
+
+.selectGrammar {
+    padding-left: 20px;
 }

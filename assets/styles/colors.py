@@ -12,6 +12,6 @@ class Color:
         elif level == "N4":
             return 'ffcbad'
         elif level == "N5":
-            return 'd0ffad'
+            return '62bb96'
         else:
             return False
