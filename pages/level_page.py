@@ -33,9 +33,6 @@ class ModeSelectButton(QWidget):
     def buttonClicked(self):
         self.parent().buttonClicked(self.id)
 
-
-
-
 class LevelPage(QWidget):
     def __init__(self, level):
         super().__init__()
@@ -56,14 +53,10 @@ class LevelPage(QWidget):
         print(self.colors.get_level_color(self.level))
 
         self.outerContainer = QVBoxLayout()
-        # self.outerContainer.setProperty("class", "outerContainer")
-
 
         labelLayout = QHBoxLayout()
         labelLayout.setAlignment(Qt.AlignmentFlag.AlignCenter)
         label1 = QLabel(self.level)
-        # label1.setProperty("class", "levelPageTitle")
-        # label1.setMargin(200)
         font = label1.font()
         font.setPointSize(60)
         label1.setFont(font)
@@ -85,11 +78,6 @@ class LevelPage(QWidget):
         self.wordsProgressBar = QProgressBar()
         self.kanjiProgressBar = QProgressBar()
         self.grammarProgressBar = QProgressBar()
-        # with open("assets//styles//styles.css", "r") as f:
-        #     style = f.read()
-        #     self.wordsProgressBar.setStyleSheet(style)
-        #     self.kanjiProgressBar.setStyleSheet(style)
-        #     self.grammarProgressBar.setStyleSheet(style)
         
         self.wordsProgressBar.setMinimum(0)
         self.wordsProgressBar.setMaximum(100)
@@ -97,8 +85,6 @@ class LevelPage(QWidget):
         self.wordsProgressBar.setTextVisible(False)
 
         self.wordsLabel = QLabel("Words learnt", self)
-        words_learnt = 150
-        words_count = 1000
         self.wordsLearnCounter = QLabel(f'{self.progress_information["words"]}/{self.total_information["words"]}')
 
         self.wordsProgressBarSubContainer = QHBoxLayout()
@@ -110,11 +96,8 @@ class LevelPage(QWidget):
         dudWordsContainer2.addWidget(self.wordsLearnCounter)
         dudWordsContainer2.setAlignment(Qt.AlignmentFlag.AlignRight)
 
-        # self.wordsProgressBarSubContainer.addWidget(self.wordsLabel)
-        # self.wordsProgressBarSubContainer.addWidget(self.wordsLearnCounter)
         self.wordsProgressBarSubContainer.addLayout(dudWordsContainer1)
         self.wordsProgressBarSubContainer.addLayout(dudWordsContainer2)
-        # self.wordsProgressBarSubContainer.setSpacing(300)
         self.wordsProgressBarContainer = QVBoxLayout()
         self.wordsProgressBarContainer.addLayout(self.wordsProgressBarSubContainer)
         self.wordsProgressBarContainer.addWidget(self.wordsProgressBar)
@@ -126,8 +109,6 @@ class LevelPage(QWidget):
         self.kanjiProgressBar.setTextVisible(False)
 
         self.kanjiLabel = QLabel("Kanji learnt", self)
-        kanji_learnt = 100
-        kanji_count = 500
         self.kanjiLearnCounter = QLabel(f'{self.progress_information["kanji"]}/{self.total_information["kanji"]}')
 
         self.kanjiProgressBarSubContainer = QHBoxLayout()
@@ -141,7 +122,6 @@ class LevelPage(QWidget):
 
         self.kanjiProgressBarSubContainer.addLayout(dudKanjiContainer1)
         self.kanjiProgressBarSubContainer.addLayout(dudKanjiContainer2)
-        # self.kanjiProgressBarSubContainer.setSpacing(300)
         self.kanjiProgressBarContainer = QVBoxLayout()
         self.kanjiProgressBarContainer.addLayout(self.kanjiProgressBarSubContainer)
         self.kanjiProgressBarContainer.addWidget(self.kanjiProgressBar)
@@ -153,8 +133,6 @@ class LevelPage(QWidget):
         self.grammarProgressBar.setTextVisible(False)
 
         self.grammarLabel = QLabel("Grammar learnt", self)
-        # grammar_learnt = 50
-        # grammar_count = 175
         self.grammarLearnCounter = QLabel(f'{self.progress_information["grammar"]}/{self.total_information["grammar"]}')
 
         self.grammarProgressBarSubContainer = QHBoxLayout()
@@ -168,14 +146,11 @@ class LevelPage(QWidget):
 
         self.grammarProgressBarSubContainer.addLayout(dudGrammarContainer1)
         self.grammarProgressBarSubContainer.addLayout(dudGrammarContainer2)
-        # self.grammarProgressBarSubContainer.setSpacing(300)
-        
         self.grammarProgressBarContainer = QVBoxLayout()
 
 
         self.grammarProgressBarContainer.addLayout(self.grammarProgressBarSubContainer)
         self.grammarProgressBarContainer.addWidget(self.grammarProgressBar)
-        # self.grammarProgressBarContainer.setSpacing(0)
         self.grammarProgressBarContainer.setContentsMargins(0,30,0,60)
 
         self.progressBarContainer.addLayout(self.wordsProgressBarContainer)
@@ -189,18 +164,12 @@ class LevelPage(QWidget):
         for b in list(buttons.keys()):
             self.buttons.append(ModeSelectButton(b))
             
-
         self.buttonLayout.addWidget(self.buttons[0], 0, 2, 1, 3)
         self.buttonLayout.addWidget(self.buttons[1], 2, 0, 1, 3)
         self.buttonLayout.addWidget(self.buttons[2], 2, 4, 1, 3)
         self.buttonLayout.addWidget(self.buttons[3], 4, 0, 1, 3)
         self.buttonLayout.addWidget(self.buttons[4], 4, 4, 1, 3)
 
-        # self.buttonLayout.setAlignment(Qt.AlignmentFlag.AlignHCenter)
-
-
-
-        # self.outerContainer.addWidget(label1)
         self.outerContainer.addLayout(labelLayout)
         self.outerContainer.addLayout(self.progressBarContainer)
         self.outerContainer.addLayout(self.buttonLayout)
@@ -211,10 +180,9 @@ class LevelPage(QWidget):
             self.setStyleSheet(f.read())
 
         dudContainer = QHBoxLayout()
-        # dudContainer.setStyleSheet("""padding:20px;""")
         dudContainer.setContentsMargins(90,50,90,50)
         dudContainer.addLayout(self.outerContainer)
-        # self.setLayout(self.outerContainer)
+
         self.setLayout(dudContainer)
 
         self.updateProgressBars()
@@ -254,7 +222,15 @@ class LevelPage(QWidget):
     def buttonClicked(self, id):
         if id == 1:
             self.parent().displayNewLessonPage()
-        
+        elif id == 2:
+            pass
+        elif id == 3:
+            pass
+        elif id == 4:
+            self.parent().displayWordMatchPage()
+        elif id == 5:
+            pass
+
     def updateProgressBars(self):
         self.grammarProgressBar.setValue(self.progress_information["grammar"])
         self.kanjiProgressBar.setValue(self.progress_information["kanji"])

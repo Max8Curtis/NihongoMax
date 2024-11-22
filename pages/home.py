@@ -24,8 +24,6 @@ class LevelButton(QWidget):
         margin-right: 5px;
         margin-left: 5px;
         """)
-
-        print(bgroundColor)
         
         self.button.setMinimumHeight(150)
         self.button.setMinimumWidth(150)
@@ -54,7 +52,7 @@ class Home(QWidget):
         label1.setAlignment(Qt.AlignmentFlag.AlignHCenter|Qt.AlignmentFlag.AlignBottom)
         
 
-        label2 = QLabel("JLPT preparation aide")
+        label2 = QLabel("JLPT preparation tool")
         font = label2.font()
         font.setPointSize(26)
         label2.setFont(font)
@@ -105,4 +103,9 @@ class Home(QWidget):
 
     def displayNewLessonPage(self):
         self.parent().displayNewLessonPage()
+
+    def displayWordMatchPage(self):
+        self.parent().displayWordMatchPage()
+
+
 

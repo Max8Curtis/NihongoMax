@@ -9,6 +9,7 @@ from pages.home import Home
 from pages.level_page import LevelPage
 from assets.data import LevelMetaData
 from pages.lesson_page import LessonPage
+from pages.word_match_page import WordMatchPage
 
 # Only needed for access to command line arguments
 import sys
@@ -21,16 +22,7 @@ app = QApplication(sys.argv)
 class MainWindow(QMainWindow):
     def __init__(self):
         super().__init__()
-        # self.widget = QWidget()
-
-        # self.pageLayout = QStackedLayout()
         self.homePage = Home()
-        # self.levelPage = LevelPage(None)
-
-        # self.pageLayout.addWidget(self.homePage)
-        # self.pageLayout.addWidget(self.levelPage)
-
-        # self.pageLayout.setCurrentIndex(0)
 
         self.level_chosen = None
         self.levelMetaData = LevelMetaData()
@@ -42,17 +34,9 @@ class MainWindow(QMainWindow):
         self.toolbar = QToolBar()
         self.addToolBar(self.toolbar)
 
-        # self.layout = QVBoxLayout()
-        # self.layout.addWidget(self.header)
-
         self.initialiseToolbarButtons()
 
-        # self.widget.setLayout(self.homePage)
         self.setCentralWidget(self.homePage)
-
-        # self.setStyleSheet(f"""
- 
-        # """)
 
         self.setStatusBar(QStatusBar(self))
 
@@ -101,31 +85,21 @@ class MainWindow(QMainWindow):
         print("click", s)
 
     def displayLevelPage(self, level):
-        # self.levelPage.setL
-  
         self.level_chosen = level
-        # self.levelPage = LevelPage(self.level_chosen)
-
-        # self.pageLayout.addWidget(self.levelPage)
-        # self.pageLayout.setCurrentIndex(1)
         levelPage = LevelPage(level)
-        # widget = QWidget()
-        # widget.setLayout(levelPage)
         self.setCentralWidget(levelPage)
 
     def displayNewLessonPage(self):
-
         lessonPage = LessonPage(self.level_chosen)
-        print("New lesson page!")
         self.setCentralWidget(lessonPage)
+
+    def displayWordMatchPage(self):
+        wordMatchPage = WordMatchPage(self.level_chosen)
+        self.setCentralWidget(wordMatchPage)
 
 window = MainWindow()
 window.show()
 
 
-# Start the event loop.
+# Start the event loop
 app.exec()
-
-
-# Your application won't reach here until you exit and the event
-# loop has stopped.
