@@ -465,6 +465,16 @@ class Database:
             return result
         except Exception as e:
             return None
+        
+    def get_words_at_level_user(self, level: str, user: int):
+        # get the words, along with their types, that user has studied in level
+        try:
+            query = f"SELECT w.word_id, w.word_kd FROM words AS w INNER JOIN word_types AS wt ON w.word_id = wt.word_id INNER JOIN types AS t ON wt.type_id = t.type_id WHERE w.word_id IN (SELECT word_id FROM user_words WHERE user_id = {user}) and level_id IN (SELECT level_id FROM levels WHERE level = '{level});"
+            
+            df = pd.read_sql_query(query, self.sqliteConnection)
+            return df
+        except Exception as e:
+            return None
 
 
 
@@ -474,4 +484,5 @@ if __name__ == "__main__":
     # db.insert_grammar_batch("assets//grammar//n1.csv", "N1")
     # db.insert_grammar_batch("assets//grammar//n2.csv", "N2")
     # db.insert_grammar_batch("assets//grammar//n3.csv", "N3")
+    print(db.get_words_at_level_user(1, 'N3'))
     db.close()
