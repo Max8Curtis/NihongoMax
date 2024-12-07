@@ -215,7 +215,6 @@ class Database:
         return result[0]
 
     def set_user_grammar_status(self, user: int, grammar: int, state: bool):
-        print(state)
 
         values = [int(user), int(grammar)]
         print(values)
@@ -443,16 +442,16 @@ class Database:
             return None
         
     def get_num_grammars_at_level_user(self, level: str, user: int):
-        try:
-            query = f"SELECT count(*) FROM user_grammars WHERE user_id = {user} AND grammar_id IN (SELECT grammar_id FROM grammars WHERE level = {level});"
-            result = self.cursor.execute(query).fetchall()[0][0]
-            return result
-        except Exception as e:
-            return None
+        # try:
+        query = f"SELECT count(*) FROM user_grammars WHERE user_id = {user} AND grammar_id IN (SELECT grammar_id FROM grammars WHERE level_id IN (SELECT level_id FROM levels WHERE level = '{level}'));"
+        result = self.cursor.execute(query).fetchall()[0][0]
+        return result
+        # except Exception as e:
+        #     return None
         
     def get_num_words_at_level_user(self, level: str, user: int):
         try:
-            query = f"SELECT count(*) FROM user_words WHERE user_id = {user} AND word_id IN (SELECT word_id FROM words WHERE level = {level});"
+            query = f"SELECT count(*) FROM user_words WHERE user_id = {user} AND word_id IN (select word_id FROM words WHERE level_id IN (select level_id FROM levels WHERE level = '{level}'));"
             result = self.cursor.execute(query).fetchall()[0][0]
             return result
         except Exception as e:
@@ -460,7 +459,7 @@ class Database:
         
     def get_num_kanjis_at_level_user(self, level: str, user: int):
         try:
-            query = f"SELECT count(*) FROM user_kanjis WHERE user_id = {user} AND kanji_id IN (SELECT kanji_id FROM kanjis WHERE level = {level});"
+            query = f"SELECT count(*) FROM user_kanjis WHERE user_id = {user} AND kanji_id IN (select kanji_id FROM kanjis WHERE level_id IN (select level_id FROM levels WHERE level = '{level}'));"
             result = self.cursor.execute(query).fetchall()[0][0]
             return result
         except Exception as e:
@@ -468,13 +467,13 @@ class Database:
         
     def get_words_at_level_user(self, level: str, user: int):
         # get the words, along with their types, that user has studied in level
-        try:
-            query = f"SELECT w.word_id, w.word_kd FROM words AS w INNER JOIN word_types AS wt ON w.word_id = wt.word_id INNER JOIN types AS t ON wt.type_id = t.type_id WHERE w.word_id IN (SELECT word_id FROM user_words WHERE user_id = {user}) and level_id IN (SELECT level_id FROM levels WHERE level = '{level});"
-            
-            df = pd.read_sql_query(query, self.sqliteConnection)
-            return df
-        except Exception as e:
-            return None
+        # try:
+        query = f"SELECT w.word_id, w.word_ka, w.word_hg, w.word_en, w.level_id, wt.type_id, t.type FROM words AS w INNER JOIN word_types AS wt ON w.word_id = wt.word_id INNER JOIN types AS t ON wt.type_id = t.type_id WHERE w.word_id IN (SELECT word_id FROM user_words WHERE user_id = {user}) and level_id IN (SELECT level_id FROM levels WHERE level = '{level}');"
+        
+        df = pd.read_sql_query(query, self.sqliteConnection)
+        return df
+        # except Exception as e:
+            # return None
 
 
 
@@ -484,5 +483,15 @@ if __name__ == "__main__":
     # db.insert_grammar_batch("assets//grammar//n1.csv", "N1")
     # db.insert_grammar_batch("assets//grammar//n2.csv", "N2")
     # db.insert_grammar_batch("assets//grammar//n3.csv", "N3")
-    print(db.get_words_at_level_user(1, 'N3'))
+    level = 'N3'
+    user = 1
+    grammars_learnt = db.get_num_grammars_at_level_user(level, user)
+    print(grammars_learnt)
+    words_learnt = db.get_num_words_at_level_user(level, user)
+    print(words_learnt)
+    kanjis_learnt = db.get_num_kanjis_at_level_user(level, user)
+    print(kanjis_learnt)
+    
+
+    print(db.get_words_at_level_user('N3', 1))
     db.close()

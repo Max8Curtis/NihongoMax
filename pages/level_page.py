@@ -217,6 +217,7 @@ class LevelPage(QWidget):
             self.progress_information["grammar"] = self.grammars_learnt
             self.progress_information["words"] = self.words_learnt
             self.progress_information["kanji"] = self.kanjis_learnt
+            print(self.progress_information)
 
 
     def buttonClicked(self, id):

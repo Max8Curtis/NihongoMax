@@ -10,7 +10,7 @@ from PyQt6.QtWidgets import (
     QLineEdit, QVBoxLayout, QHBoxLayout, QWidget, QToolBar,
     QStatusBar, QStackedLayout, QGridLayout, QCheckBox, QMenu,
     QDialog, QDialogButtonBox, QComboBox, QScrollArea, QListWidget,
-    QAbstractButton
+    QAbstractButton, QListWidgetItem
 )
 from PyQt6.QtGui import QPixmap, QAction, QCursor, QPainter
 from PyQt6 import QtCore
@@ -135,6 +135,35 @@ class ExamplesField(QWidget):
 
             self.update()
 
+class QCustomListWidget(QWidget):
+    def __init__ (self, idx, jp, en, complete = False, parent = None):
+        super(QCustomListWidget, self).__init__(parent)
+        self.text_vbox = QVBoxLayout()
+
+        self.jp_text = QLabel(f'{idx}. {jp}')
+        self.en_text = QLabel(en)
+
+        self.text_vbox.addWidget(self.jp_text)
+        self.text_vbox.addWidget(self.en_text)
+        self.text_vbox.setAlignment(Qt.AlignmentFlag.AlignLeft)
+
+        self.complete_style = 'color: rgb(0, 0, 0);'
+        self.incomplete_style = 'color: rgb(255, 60, 0);'
+
+        self.setCursor(QCursor(QtCore.Qt.CursorShape.PointingHandCursor))
+
+        self.setStyle(complete)
+
+        self.setLayout(self.text_vbox)
+
+    def setStyle(self, complete):
+        if complete:
+            self.jp_text.setStyleSheet(self.complete_style)
+            self.en_text.setStyleSheet(self.complete_style)
+        else:
+            self.jp_text.setStyleSheet(self.incomplete_style)
+            self.en_text.setStyleSheet(self.incomplete_style)
+
 
 class SelectGrammarField(QWidget):
     def __init__(self, level, user, parent=None, db=None, grammars=None):
@@ -161,17 +190,28 @@ class SelectGrammarField(QWidget):
 
         self.outer_container.addWidget(self.random_btn)
 
-        self.list = QListWidget()
-        self.list.addItems([f"{grammars['jp'].iloc[i]} | {grammars['en'].iloc[i]}" for i in range(grammars.shape[0])])
-        self.list.currentRowChanged.connect(self.rowChanged)
+        self.list_widget = QListWidget()
+        self.list_items = [QCustomListWidget(i+1, grammars['jp'].iloc[i], grammars['en'].iloc[i], grammars['completed'].iloc[i]) for i in range(self.grammars.shape[0])]
+        for item in self.list_items:
+            my_list_widget = QListWidgetItem(self.list_widget)
+            # Set size hint
+            my_list_widget.setSizeHint(item.sizeHint())
+            # Add QListWidgetItem into QListWidget
+            self.list_widget.addItem(my_list_widget)
+            self.list_widget.setItemWidget(my_list_widget, item)
+        # self.list_widget.addItems([f"{grammars['jp'].iloc[i]} | {grammars['en'].iloc[i]}" for i in range(grammars.shape[0])])
+        self.list_widget.currentRowChanged.connect(self.rowChanged)
 
-        self.outer_container.addWidget(self.list)
-        self.outer_container.setProperty("class", "selectGrammar")
+        self.outer_container.addWidget(self.list_widget)
+        self.outer_container.setProperty("class", "select")
 
         with open(styles, "r") as f:
             self.setStyleSheet(f.read())
 
         self.setLayout(self.outer_container)
+
+    def updateItemCompletion(self, idx, state):
+        self.list_items[idx].setStyle(state)
 
     def randomBtnPressed(self):
         self.parent().randomBtnPressed()
@@ -180,7 +220,7 @@ class SelectGrammarField(QWidget):
         self.parent().grammarSelected(idx)
 
     def scrollListView(self, idx):
-        self.list.scrollToItem(self.list.item(idx))
+        self.list_widget.scrollToItem(self.list_widget.item(idx))
 
 class ArrowButton(QAbstractButton):
     def __init__(self, pixmap, dir, parent=None):
@@ -190,6 +230,8 @@ class ArrowButton(QAbstractButton):
         self.clicked.connect(self.buttonPressed)
         self.setMaximumHeight(50)
         self.setMaximumWidth(30)
+
+        self.setCursor(QCursor(QtCore.Qt.CursorShape.PointingHandCursor))
         
     def paintEvent(self, event):
         painter = QPainter(self)
@@ -209,7 +251,7 @@ class LessonPage(QWidget):
     def __init__(self, level):
         super().__init__()
         self.user = 1 # Temporary user id - ADD LOGIN FUNCTIONALITY
-        self.level = level
+        self.level = level.upper()
 
         self.db = Database()
         self.grammars = self.db.get_user_grammars_all(self.level, self.user)
@@ -228,9 +270,9 @@ class LessonPage(QWidget):
         self.title_container.addWidget(self.grammar_title)
         self.title_container.setAlignment(Qt.AlignmentFlag.AlignLeft)
 
-        self.selectGrammarField = SelectGrammarField(self.level, self.user, self, self.db, self.grammars)
-        self.selectGrammarField.setMaximumWidth(400)
-        self.selectGrammarField.setContentsMargins(50,0,0,0)
+        self.select_grammar_field = SelectGrammarField(self.level, self.user, self, self.db, self.grammars)
+        self.select_grammar_field.setMaximumWidth(400)
+        self.select_grammar_field.setContentsMargins(50,0,0,0)
 
         self.lesson_container = QHBoxLayout()
 
@@ -288,7 +330,7 @@ class LessonPage(QWidget):
         self.grammar_info_container.addLayout(self.examples_container)
 
         self.lesson_container.addLayout(self.grammar_info_container)
-        self.lesson_container.addWidget(self.selectGrammarField)
+        self.lesson_container.addWidget(self.select_grammar_field)
         
         self.display()
 
@@ -318,7 +360,7 @@ class LessonPage(QWidget):
         self.grammar_image.setPixmap(pixmap)
         self.grammar_title.setText(self.makeTitle(self.grammars['en'].iloc[self.selected], self.grammars['jp'].iloc[self.selected]))
 
-        self.selectGrammarField.scrollListView(self.selected)
+        self.select_grammar_field.scrollListView(self.selected)
 
         if self.grammars['completed'].iloc[self.selected]:
             self.check_box.setCheckState(Qt.CheckState.Checked)
@@ -345,7 +387,6 @@ class LessonPage(QWidget):
             self.hide_jp_btn.setText('Show JP')
             self.examples.hideJp()
 
-
     def enToggleBtnPressed(self):
         if self.examples.getEnHidden(): # If the English text is currently hidden
             self.hide_en_btn.setText('Hide En')
@@ -365,7 +406,14 @@ class LessonPage(QWidget):
         self.examples.hideEn()
 
     def checked(self, state):
-        print(state)
+        if state == 2:
+            state = True
+        elif state == 0:
+            state = False
+
+        self.db.set_user_grammar_status(self.user, self.grammars['id'].iloc[self.selected], state) # update completion status in database
+        self.grammars['completed'].iloc[self.selected] = state # locally update the completion status
+        self.select_grammar_field.updateItemCompletion(self.selected, state)
 
     def makeTitle(self, en, jp):
-        return jp # + ' - ' + en
+        return f'{self.selected+1}. {jp}' # + ' - ' + en
