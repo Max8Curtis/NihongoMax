@@ -98,21 +98,24 @@ class Database:
             grammar_id INTEGER NOT NULL,
             PRIMARY KEY (user_id, grammar_id),
             FOREIGN KEY (user_id) REFERENCES users (user_id),
-            FOREIGN KEY (grammar_id) REFERENCES grammars (grammar_id)
+            FOREIGN KEY (grammar_id) REFERENCES grammars (grammar_id),
+            UNIQUE(user_id, grammar_id)
         );"""
 
         user_words_table = """ CREATE TABLE IF NOT EXISTS user_words (
             user_id INTEGER NOT NULL,
             word_id INTEGER NOT NULL,
             FOREIGN KEY (user_id) REFERENCES users (user_id),
-            FOREIGN KEY (word_id) REFERENCES words (word_id)
+            FOREIGN KEY (word_id) REFERENCES words (word_id),
+            UNIQUE(user_id, word_id)
         );"""
 
         user_kanjis_table = """ CREATE TABLE IF NOT EXISTS user_kanjis (
             user_id INTEGER NOT NULL,
             kanji_id INTEGER NOT NULL,
             FOREIGN KEY (user_id) REFERENCES users (user_id),
-            FOREIGN KEY (kanji_id) REFERENCES kanjis (kanji_id)
+            FOREIGN KEY (kanji_id) REFERENCES kanjis (kanji_id),
+            UNIQUE(user_id, kanji_id)
         );"""
 
         self.cursor.execute(levels_table)
@@ -275,6 +278,13 @@ class Database:
 
         for i in range(df.shape[0]): # For each new word being added
             print(df["jp"].iloc[i])
+            # Check if word is already in the database
+            query = f"SELECT * FROM words WHERE words.word_ka = '{df['jp'].iloc[i]}';"
+            result = self.cursor.execute(query).fetchall()
+            print(result)
+            if result != []:
+                print(f"word {df['jp'].iloc[i]} already exists")
+                continue
             types = []
             for x in df['types'].iloc[i].split("'"): # types list is loaded as string, so convert to list
                 if x != "[" and x != "]" and x != ", " and not x.upper() in types: # Check for duplicate types with different casing
@@ -310,7 +320,7 @@ class Database:
             level_id = self.get_level(level)
 
             values = [word_id, df["jp"].iloc[i], df["hg"].iloc[i], df["en"].iloc[i], level_id]
-            # print(values)
+
             query = "INSERT INTO words (word_id, word_ka, word_hg, word_en, level_id) VALUES (?,?,?,?,?)"
             self.cursor.execute(query, values)
 
@@ -372,6 +382,23 @@ class Database:
 
         return True
     
+    def add_user_words(self, words: list[int], user: int):
+        query = "BEGIN TRANSACTION;" # Perform batch insert to avoid half-complete insert in case of failure
+        self.cursor.execute(query)
+
+        query = "INSERT INTO user_words (user_id, word_id) VALUES "
+        for i in range(len(words)):
+            query += f"({user}, {words[i]}),"
+
+        query = query[:len(query)-1] + ";"
+        print(query)
+        self.cursor.execute(query)
+
+        query = "COMMIT;"
+        self.cursor.execute(query)
+        self.sqliteConnection.commit()
+
+    
     def get_grammar_info(self, id: int):
         query = f"""SELECT * FROM grammars WHERE grammar_id = {id};"""
 
@@ -413,6 +440,14 @@ class Database:
 
         df = pd.read_sql_query(query, self.sqliteConnection)
         return df
+    
+    def get_words_at_level(self, level: str):
+        try:
+            query = f"SELECT * FROM words WHERE level_id IN (SELECT level_id FROM levels WHERE level = '{level}');"
+            result = self.cursor.execute(query).fetchall()
+            return result
+        except Exception as e:
+            return None
     
     def get_num_grammars_at_level(self, level: str):
         try:
@@ -477,21 +512,29 @@ class Database:
 
 
 
+
 if __name__ == "__main__":
     db = Database()
+    # db.drop_tables()
     db.createTables()
+    # db.insert_levels()
     # db.insert_grammar_batch("assets//grammar//n1.csv", "N1")
     # db.insert_grammar_batch("assets//grammar//n2.csv", "N2")
     # db.insert_grammar_batch("assets//grammar//n3.csv", "N3")
-    level = 'N3'
-    user = 1
-    grammars_learnt = db.get_num_grammars_at_level_user(level, user)
-    print(grammars_learnt)
-    words_learnt = db.get_num_words_at_level_user(level, user)
-    print(words_learnt)
-    kanjis_learnt = db.get_num_kanjis_at_level_user(level, user)
-    print(kanjis_learnt)
-    
+    # level = 'N1'
+    # user = 1
+    # grammars_learnt = db.get_num_grammars_at_level_user(level, user)
+    # print(grammars_learnt)
+    # words_learnt = db.get_num_words_at_level_user(level, user)
+    # print(words_learnt)
+    # kanjis_learnt = db.get_num_kanjis_at_level_user(level, user)
+    # print(kanjis_learnt)
+    # words = [x[0] for x in db.get_words_at_level(level)]
+    # print(words)
+    # db.add_user_words(words, user)
+    db.insert_words_batch(r'assets//words//n1.csv', 'N1')
+    # if result[0][0] is None:
+    #     word_id = 1
 
-    print(db.get_words_at_level_user('N3', 1))
+    # print(db.get_words_at_level_user('N3', 1))
     db.close()
