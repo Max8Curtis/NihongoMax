@@ -10,6 +10,7 @@ from pages.level_page import LevelPage
 from assets.data import LevelMetaData
 from pages.lesson_page import LessonPage
 from pages.word_match_page import WordMatchPage
+from pages.kanji_spell_page import KanjiSpellPage
 
 # Only needed for access to command line arguments
 import sys
@@ -96,6 +97,10 @@ class MainWindow(QMainWindow):
     def displayWordMatchPage(self):
         wordMatchPage = WordMatchPage(self.level_chosen)
         self.setCentralWidget(wordMatchPage)
+
+    def displayKanjiSpellPage(self):
+        kanjiSpellPage = KanjiSpellPage(self.level_chosen)
+        self.setCentralWidget(kanjiSpellPage)
 
 window = MainWindow()
 window.show()

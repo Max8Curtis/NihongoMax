@@ -16,131 +16,45 @@ from PyQt6.QtWidgets import (
 from PyQt6.QtGui import QPixmap, QAction, QCursor
 from PyQt6 import QtCore
 from assets.styles.colors import Color
+from assets.widgets import SelectWordField
+from assets.tools import Tools
+tools = Tools()
 
 styles = "assets\styles\styles.css"
 
-class QCustomListWidget(QWidget):
-    def __init__ (self, idx, jp, en, selected, parent = None):
-        super(QCustomListWidget, self).__init__(parent)
-        self.idx = idx
-        self.text_vbox = QVBoxLayout()
-        self.selected = selected
-
-        self.jp_text = QLabel(f'{jp}')
-        self.en_text = QLabel(en)
-
-        self.text_vbox.addWidget(self.jp_text)
-        self.text_vbox.addWidget(self.en_text)
-        self.text_vbox.setAlignment(Qt.AlignmentFlag.AlignLeft)
-        # self.clicked.connect(self.itemClicked)
-
-        self.selected_style = 'color: rgb(3, 133, 3);'
-        self.unselected_style = 'color: rgb(0, 0, 0);'
-
-        self.setCursor(QCursor(QtCore.Qt.CursorShape.PointingHandCursor))
-
-        self.setLayout(self.text_vbox)
-
-    def clicked(self):
-        if self.selected: # If item is selected when it is pressed, it should now be displayed as unselected
-            self.jp_text.setStyleSheet(self.unselected_style)
-            self.en_text.setStyleSheet(self.unselected_style)
-        else:
-            self.jp_text.setStyleSheet(self.selected_style)
-            self.en_text.setStyleSheet(self.selected_style)
-        
-        self.selected = not self.selected
-
-    def getSelected(self):
-        return self.selected
-
-    def getIdx(self):
-        return self.idx
-
-class SelectWordField(QWidget):
-    def __init__(self, parent=None, words=None):
+class ScoreTracker(QWidget):
+    def __init__(self, parent=None):
         super().__init__(parent)
-        self.words = words
-
-        self.outer_container = QVBoxLayout()
-
-        self.title = QLabel('Word List')
-        font = self.title.font()
-        font.setPointSize(20)
-        self.title.setFont(font)
-
-        self.outer_container.addWidget(self.title)
-
-        self.random_btn = QPushButton('Randomise')
-        self.random_btn.setMaximumWidth(100)
-        self.random_btn.setProperty("class", "button")
-        self.random_btn.setCursor(QCursor(QtCore.Qt.CursorShape.PointingHandCursor))
-        self.random_btn.clicked.connect(self.randomBtnPressed)
-
-        self.outer_container.addWidget(self.random_btn)
-
-        self.list_widget = QListWidget()
-        self.list_items = [QCustomListWidget(idx=words['id'].iloc[i], jp=words['ka'].iloc[i], en=words['en'].iloc[i], selected=False) for i in range(self.words.shape[0])]
-        for item in self.list_items:
-            my_list_widget = QListWidgetItem(self.list_widget)
-            # Set size hint
-            my_list_widget.setSizeHint(item.sizeHint())
-            # Add QListWidgetItem into QListWidget
-            self.list_widget.addItem(my_list_widget)
-            self.list_widget.setItemWidget(my_list_widget, item)
-
-        self.list_widget.itemClicked.connect(self.updateItem)
-
-        self.outer_container.addWidget(self.list_widget)
-        self.outer_container.setProperty("class", "select")
-
-        with open(styles, "r") as f:
-            self.setStyleSheet(f.read())
-
-        self.setLayout(self.outer_container)
-
-    def getChosenWords(self):
-        return [word.getIdx() for word in self.list_items if word.getSelected()]
-
-    def updateItem(self):
-        print(f'{self.list_widget.currentRow()} clicked!')
-        self.list_items[self.list_widget.currentRow()].clicked()
-        self.parent().setSelected(self.list_items[self.list_widget.currentRow()].getIdx(), self.list_items[self.list_widget.currentRow()].getSelected())
-
-    def randomBtnPressed(self):
-        self.parent().randomBtnPressed()
-
-    def rowChanged(self, idx):
-        self.parent().grammarSelected(idx)
-
-    def scrollListView(self, idx):
-        self.list_widget.scrollToItem(self.list_widget.item(idx))
-
-class ScoreTracker:
-    def __init__(self, c=0, t=0):
-        self.correct = c
-        self.total = t
         self.round_words_remaining = None
-
-    def getTotal(self):
-        return self.total
+        self.points_correct = 5
+        self.points_incorrect = -3
+        self.score = 0
     
-    def getCorrect(self):
-        return self.correct
+    def getScore(self):
+        return self.score
     
     def answerCorrect(self):
-        self.correct += 1
+        self.score += self.points_correct
+        self.parent().updateScoreLabel()
+        # self.decrementRemaining()
 
-    def setTotal(self, t):
-        self.total = t
+    def answerIncorrect(self):
+        self.score += self.points_incorrect
+        self.parent().updateScoreLabel()
 
     def setWordsRemaining(self, n):
         self.round_words_remaining = n
 
     def decrementRemaining(self):
+        if self.round_words_remaining is None:
+            return None
         if self.round_words_remaining > 0:
             self.round_words_remaining -= 1
         return self.round_words_remaining
+    
+    def resetScore(self):
+        self.round_words_remaining = None
+        self.score = 0
 
 class PlayArea(QWidget):
     def __init__(self, n, words, show_hg):
@@ -149,27 +63,28 @@ class PlayArea(QWidget):
         self.words = words
         self.show_hg = show_hg
         self.num_words = 8
-        self.pressed_button = {'id': None, 'type': None} # store info of button pressed first to compare to info of second pressed button to check for a match
+        self.pressed_button = {'idx': None, 'type': None} # store info of button pressed first to compare to info of second pressed button to check for a match
         self.container = QHBoxLayout()
+        self.container.setContentsMargins(0,0,0,0)
         self.button_container = QGridLayout()
         self.select_words_container = QVBoxLayout()
+        self.select_words_container.setContentsMargins(0,0,0,0)
         self.started = False
+
+        self.words['selected'] = [False for i in range(self.words.shape[0])]
 
         print("Words:")
         print(self.words)
 
-        self.score_tracker = ScoreTracker(c=0, t=0)
-        self.score_label = QLabel(f'{self.score_tracker.getCorrect()} / {self.score_tracker.getTotal()}')
-        font = self.score_label.font()
-        font.setPointSize(24)
-        self.score_label.setFont(font)
+        self.score_tracker = ScoreTracker(parent=self)
+        self.score_label = QLabel(f'{self.score_tracker.getScore()}')
+        self.setFontSize(self.score_label, 24)
 
         self.score_title = QLabel('Score:')
-        font = self.score_title.font()
-        font.setPointSize(24)
-        self.score_title.setFont(font)
+        self.setFontSize(self.score_title, 24)
 
         self.score_container = QHBoxLayout()
+        self.score_container.setContentsMargins(10,0,0,0)
         self.score_container.addWidget(self.score_title)
         self.score_container.addWidget(self.score_label)
 
@@ -181,6 +96,7 @@ class PlayArea(QWidget):
         self.start_button_layout = QHBoxLayout()
         self.start_button_layout.setAlignment(Qt.AlignmentFlag.AlignCenter)
         self.start_label = QLabel('Start')
+        self.setFontSize(self.start_label, 18)
         self.start_button_layout.addWidget(self.start_label)
         self.start_button.setCursor(QCursor(QtCore.Qt.CursorShape.PointingHandCursor))
         self.start_button.setLayout(self.start_button_layout)
@@ -192,63 +108,100 @@ class PlayArea(QWidget):
         self.container.addLayout(self.select_words_container)
 
         # Initialise play area buttons with blank text
-        self.buttons = {'jp': [WordButton(id=i) for i in range(self.num_words)], 'en': [WordButton(id=i) for i in range(self.num_words)]}
+        self.buttons = [WordButton() for i in range(self.size**2)]
+        for i in range(len(self.buttons)):
+            self.button_container.addWidget(self.buttons[i], i//self.size, i%self.size)
         
-        self.populateArea()
+        # self.populateArea()
+
+        print(self.button_container.itemAtPosition(0,0))
         self.setLayout(self.container)
 
     def startBtnPressed(self):
+        self.score_tracker.resetScore()
+        self.updateScoreLabel()
+        self.words.assign(selected=False)
         self.started = True
-        self.resetBtnText()
-        chosen_words = self.words[self.words['selected'] == True]
-        self.num_words = min((self.size**2)//2, chosen_words.shape[0])
+        self.resetButtons()
+        self.chosen_words = self.words[self.words['selected'] == True]
+        self.num_words = min((self.size**2)//2, self.chosen_words.shape[0])
         print(f'num words: {self.num_words}')
-        print("Chosen words:")
-        print(chosen_words)
-        jp_words, en_words = self.pickWords(chosen_words)
-        for i in range(self.num_words):
-            self.buttons['jp'][i].setJp(ka=jp_words['ka'].iloc[i], hg=jp_words['hg'].iloc[i])
-            print("Japanese word:")
-            print(jp_words['ka'].iloc[i])
-            self.buttons['en'][i].setEn(en=en_words['en'].iloc[i])
-            print("English word")
-            print(en_words['en'].iloc[i])
-        
+        self.startRound()
+
+    def startRound(self):
+        sampled_words = self.pickWords(self.chosen_words)
+        print(sampled_words)
+        nums = list(range(0, self.num_words*2)) # account for japanese and english counterparts
+        random.shuffle(nums)
+        print("Numbers chosen for this round:")
+        print(nums)
+        self.score_tracker.setWordsRemaining(self.num_words)
+        for i in range(0, self.num_words):
+            self.buttons[nums[2*i]].setData(id=sampled_words['id'].iloc[i], type='jp', ka=sampled_words['ka'].iloc[i], hg=sampled_words['hg'].iloc[i])
+            print(f"Japanese word: {sampled_words['ka'].iloc[i]} going to button {nums[i]}")
+            print()
+            self.buttons[nums[2*i+1]].setData(id=sampled_words['id'].iloc[i], type='en', en=sampled_words['en'].iloc[i])
+            print(f"English word: {sampled_words['en'].iloc[i]} going to button {nums[i+1]}")
+            print()
+
+            self.buttons[nums[2*i]].displayText()
+            self.buttons[nums[2*i+1]].displayText()
+
+    def getButtonIndex(self, id, type):
+        # Get list index of button with word id <id> from the buttons list
+        for i in range(len(self.buttons)):
+            if self.buttons[i].getId() == id and self.buttons[i].getType() == type:
+                return i
+        return None # no button in the list contains a word with that <id>
+
     def btnPressed(self, type, id):
         print(self.pressed_button)
+        idx = self.getButtonIndex(id, type)
+        print(f"Button index: {idx}")
         if self.pressed_button['type'] is None: # this is the first button pressed of a new pair
-            self.pressed_button['id'] = id
+            self.pressed_button['idx'] = idx
             self.pressed_button['type'] = type
             if not type is None: # if selecting a button with text
-                self.buttons[type][id].setSelectedStyle()
-        else:
-            if id == self.pressed_button['id'] and type != self.pressed_button['type']:
+                self.buttons[idx].setSelectedStyle()
+        else: # this is the second button pressed
+            # check if the first and second pressed buttons have the same word id and opposing types (i.e. they match)
+            if id == self.buttons[self.pressed_button['idx']].getId() and type != self.pressed_button['type']:
                 print("match!")
-                self.buttons[type][id].resetBtn()
-                self.buttons[self.pressed_button['type']][self.pressed_button['id']].resetBtn()
+                self.buttons[idx].resetBtn()
+                self.buttons[self.pressed_button['idx']].resetBtn()
+                self.score_tracker.answerCorrect()
+                remaining = self.score_tracker.decrementRemaining()
+                print(remaining)
+                if remaining == 0:
+                    self.startRound()
+            elif type is None: # the second button pressed is blank
+                pass
             else:
                 print("no match!")
+                self.score_tracker.answerIncorrect()
             # if not type is None: # if selecting a button with text
-            self.buttons[self.pressed_button['type']][self.pressed_button['id']].setUnselectedStyle()
-            self.pressed_button['id'] = None
+            self.buttons[self.pressed_button['idx']].setUnselectedStyle()
+            self.pressed_button['idx'] = None
             self.pressed_button['type'] = None
 
         print(self.pressed_button)
 
+    def updateScoreLabel(self):
+        self.score_label.setText(f'{self.score_tracker.getScore()}')
+        self.setFontSize(self.score_label, 24)
+
     def toggleHg(self):
         self.show_hg = not self.show_hg
-        for i in range(len(self.buttons['jp'])):
-            self.buttons['jp'][i].toggleHg()
+        for i in range(len(self.buttons)):
+            self.buttons[i].toggleHg()
             
     def setSelected(self, idx, state):
         self.words.loc[self.words['id'] == idx, 'selected'] = state
 
-    def resetBtnText(self):
+    def resetButtons(self):
         # Set text of all buttons to blank
-        for i in range(len(self.buttons['jp'])):
-            self.buttons['jp'][i].resetBtn()
-        for i in range(len(self.buttons['en'])):
-            self.buttons['en'][i].resetBtn()
+        for i in range(len(self.buttons)):
+            self.buttons[i].resetBtn()
 
     def setWords(self, words):
         self.resetBtnText()
@@ -260,28 +213,18 @@ class PlayArea(QWidget):
     def pickWords(self, words):
         # Pick the words to use in the matching. If number of available words is less than grid size requires, pick greatest even number less than size.
         sample = words.sample(self.num_words)
-        jp_words = sample[['ka', 'hg']]
-        en_words = sample[['en']]
-        return jp_words, en_words
+        return sample
+
+    def setFontSize(self, obj: QWidget, size: int):
+        font = obj.font()
+        font.setPointSize(size)
+        obj.setFont(font)
+        return obj
     
-    def populateArea(self):
-        nums = list(range(0, self.num_words*2)) # account for japanese and english counterparts
-        random.shuffle(nums)
-        print("Numbers chosen for this round:")
-        print(nums)
-        for i in range(0, self.num_words):
-            # populate with the japanese words
-            self.button_container.addWidget(self.buttons['jp'][i], nums[2*i]//self.size, nums[2*i]%self.size)
-            print(f'x: {nums[2*i]//self.size}, y: {nums[2*i]%self.size}')
-
-            # populate with the english words
-            self.button_container.addWidget(self.buttons['en'][i], nums[2*i+1]//self.size, nums[2*i+1]%self.size)
-            print(f'x: {nums[2*i+1]//self.size}, y: {nums[2*i+1]%self.size}')
-
 class WordButton(QWidget):
-    def __init__(self, id, show_hg=True, ka=None, hg=None, en=None, type=None):
+    def __init__(self, id=None, type=None, ka=None, hg=None, en=None):
         super().__init__()
-        self.show_hg = show_hg
+        self.show_hg = True
         self.type = type
         self.id = id
         self.ka = ka
@@ -345,6 +288,26 @@ class WordButton(QWidget):
         self.container = QHBoxLayout()
         self.container.addWidget(self.button)
         self.setLayout(self.container)
+
+    def setData(self, id, type, ka=None, hg=None, en=None):
+        self.id = id
+        self.type = type
+        self.ka = ka
+        self.hg = hg
+        self.en = en
+
+    def displayText(self):
+        if self.type is None:
+            self.button_text = ""
+        else:
+            if self.type == 'en':
+                self.button_text = self.en
+            elif self.type == 'jp':
+                if self.show_hg:
+                    self.button_text = f"{self.ka} \n {self.hg}"
+                else:
+                    self.button_text = self.ka 
+        self.setBtnText()
     
     def setSelectedStyle(self):
         self.button.setStyleSheet(self.selected_style)
@@ -365,7 +328,7 @@ class WordButton(QWidget):
     def toggleHg(self):
         self.show_hg = not self.show_hg
         if not self.type is None:
-            self.setJp(self.ka, self.hg)
+            self.displayText()
 
     def setEn(self, en):
         self.type = 'en'
@@ -374,6 +337,9 @@ class WordButton(QWidget):
 
     def resetBtn(self):
         self.button_text = ""
+        self.ka = None
+        self.hg = None
+        self.en = None
         self.type = None
         self.setBtnText()
 
@@ -385,6 +351,12 @@ class WordButton(QWidget):
         else:
             font.setPointSize(12)
         self.button_label.setFont(font)
+
+    def getId(self):
+        return self.id
+    
+    def getType(self):
+        return self.type
 
     def pressed(self):
         self.parent().btnPressed(self.type, self.id)
@@ -409,48 +381,28 @@ class WordMatchPage(QWidget):
         self.words['type_id'] = combined_type_ids
         self.words['type'] = combined_types
         self.words.columns = ['id', 'ka', 'hg', 'en', 'level_id', 'type_id', 'type']
-        self.words['selected'] = [False for i in range(self.words.shape[0])]
-
-        # print(self.words)
 
         self.title_bar_layout = QHBoxLayout()
         self.title_bar_layout.setAlignment(Qt.AlignmentFlag.AlignCenter)
-        # self.title_bar_layout.setSpacing(200)
 
         self.meta_buttons_container = QHBoxLayout()
         self.meta_buttons_container.setAlignment(Qt.AlignmentFlag.AlignLeft)
-
-        self.reset_button = QPushButton('Reset')
-        self.reset_button.setCursor(QCursor(QtCore.Qt.CursorShape.PointingHandCursor))
-        self.reset_button.setMinimumWidth(150)
-        self.reset_button.setMaximumHeight(40)
-
-        font = self.reset_button.font()
-        font.setPointSize(18)
-        self.reset_button.setFont(font)
 
         self.toggle_hg_button = QPushButton('Hide hiragana')
         self.toggle_hg_button.clicked.connect(self.toggleHg)
         self.toggle_hg_button.setCursor(QCursor(QtCore.Qt.CursorShape.PointingHandCursor))
         self.toggle_hg_button.setMinimumWidth(150)
         self.toggle_hg_button.setMaximumHeight(40)
-        font = self.toggle_hg_button.font()
-        font.setPointSize(14)
-        self.toggle_hg_button.setFont(font)
+        self.setFontSize(self.toggle_hg_button, 14)
 
-        self.meta_buttons_container.addWidget(self.reset_button)
         self.meta_buttons_container.addWidget(self.toggle_hg_button)
 
         self.title_bar_layout.addLayout(self.meta_buttons_container)   
 
-        self.title = QLabel(f'{level.upper()} Word Match')
-        font = self.title.font()
-        font.setPointSize(24)
-        self.title.setFont(font)
-        self.title.setStyleSheet(f"""
-        color: #{self.colors.get_level_color(self.level)};
-        font-family: Titillium;
-        """)
+        # self.title = QLabel(f'{level.upper()} Word Match')
+        # self.setFontSize(self.title, 24)
+        # self.title.setStyleSheet(tools.getPageTitleStyling(self.level))
+        self.title = tools.getPageTitle(self.level)
        
         self.title_bar_layout.addStretch(1)
         self.title_bar_layout.addWidget(self.title)
@@ -483,3 +435,9 @@ class WordMatchPage(QWidget):
         else:
             self.toggle_hg_button.setText('Show hiragana')
         self.play_area.toggleHg()
+
+    def setFontSize(self, obj: QWidget, size: int):
+        font = obj.font()
+        font.setPointSize(size)
+        obj.setFont(font)
+        return obj

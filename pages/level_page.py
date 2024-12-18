@@ -9,10 +9,11 @@ from PyQt6 import QtCore
 from assets.styles.colors import Color
 import json
 from database import Database
+from assets.tools import Tools
 
 styles = "assets\styles\styles.css"
-buttons = {1: "New lesson", 2: "Daily review", 3: "Translation quiz", 4: "Word match", 5: "Word fill"}
-
+buttons = {1: {"title": "New lesson", "icon": r"assets\images\new_lesson_icon.jpg", "display": True}, 2: {"title": "Daily review", "icon": r"assets\images\daily_review_icon-removebg-preview.png", "display": True}, 3: {"title": "Translation quiz", "icon": r"assets\images\translation_icon-removebg-preview.png", "display": True}, 4: {"title": "Word match", "icon": r"assets\images\word_match_icon-removebg-preview.png", "display": True}, 5: {"title": "Word fill", "icon": r"assets\images\new_lesson_icon.jpg", "display": False}, 6: {"title": "Kanji spell", "icon": r"assets\images\kanji_spell_icon.png", "display": True}}
+tools = Tools()
 
 class ModeSelectButton(QWidget):
     def __init__(self, id):
@@ -20,18 +21,43 @@ class ModeSelectButton(QWidget):
 
         self.id = id
 
-        self.button = QPushButton(buttons[self.id], self)
+        self.button = QPushButton()
+
+        self.button_layout = QHBoxLayout()
+        self.button_layout.setAlignment(Qt.AlignmentFlag.AlignRight)
+        self.button_label = QLabel(buttons[self.id]['title'])
+        self.setFontSize(self.button_label, 22)
+        self.button_layout.addStretch(1)
+        self.button_layout.addWidget(self.button_label)
+        self.button_layout.addStretch(1)
+        self.button_icon = QLabel(self)
+        pixmap = QPixmap(buttons[self.id]['icon']).scaled(40,40)
+        print(buttons[self.id]['icon'])
+        self.button_icon.setPixmap(pixmap)
+        self.button_icon.setAlignment(Qt.AlignmentFlag.AlignCenter)
+        self.button_layout.addWidget(self.button_icon)
+        self.button.setLayout(self.button_layout)
 
         self.button.setProperty("class", "levelButton")
         self.button.setProperty("id", str(self.id))
         self.button.setCursor(QCursor(QtCore.Qt.CursorShape.PointingHandCursor))
         self.button.clicked.connect(self.buttonClicked)
 
+        self.layout = QHBoxLayout()
+        self.layout.setAlignment(Qt.AlignmentFlag.AlignCenter)
+        self.layout.addWidget(self.button)
+        self.setLayout(self.layout)
+
         with open(styles, 'r') as f:
             self.setStyleSheet(f.read())
 
     def buttonClicked(self):
         self.parent().buttonClicked(self.id)
+
+    def setFontSize(self, obj: QWidget, size: int):
+        font = obj.font()
+        font.setPointSize(size)
+        obj.setFont(font)
 
 class LevelPage(QWidget):
     def __init__(self, level):
@@ -57,9 +83,7 @@ class LevelPage(QWidget):
         labelLayout = QHBoxLayout()
         labelLayout.setAlignment(Qt.AlignmentFlag.AlignCenter)
         label1 = QLabel(self.level)
-        font = label1.font()
-        font.setPointSize(60)
-        label1.setFont(font)
+        self.setFontSize(label1, 60)
         label1.setStyleSheet(f"""
         color: #{self.colors.get_level_color(self.level)};
         font-family: Titillium;
@@ -80,12 +104,14 @@ class LevelPage(QWidget):
         self.grammarProgressBar = QProgressBar()
         
         self.wordsProgressBar.setMinimum(0)
-        self.wordsProgressBar.setMaximum(100)
-        self.wordsProgressBar.setValue(self.progress_information["words"]//self.total_information["words"]*100)
+        self.wordsProgressBar.setMaximum(self.total_information["words"])
+        self.wordsProgressBar.setValue(self.progress_information["words"])
         self.wordsProgressBar.setTextVisible(False)
 
         self.wordsLabel = QLabel("Words learnt", self)
+        self.setFontSize(self.wordsLabel, 14)
         self.wordsLearnCounter = QLabel(f'{self.progress_information["words"]}/{self.total_information["words"]}')
+        self.setFontSize(self.wordsLearnCounter, 14)
 
         self.wordsProgressBarSubContainer = QHBoxLayout()
 
@@ -104,12 +130,14 @@ class LevelPage(QWidget):
         self.wordsProgressBarContainer.setContentsMargins(0,30,0,60)
 
         self.kanjiProgressBar.setMinimum(0)
-        self.kanjiProgressBar.setMaximum(100)
-        self.kanjiProgressBar.setValue(self.progress_information["kanji"]//self.total_information["kanji"]*100)
+        self.kanjiProgressBar.setMaximum(self.total_information["kanji"])
+        self.kanjiProgressBar.setValue(self.progress_information["kanji"])
         self.kanjiProgressBar.setTextVisible(False)
 
         self.kanjiLabel = QLabel("Kanji learnt", self)
+        self.setFontSize(self.kanjiLabel, 14)
         self.kanjiLearnCounter = QLabel(f'{self.progress_information["kanji"]}/{self.total_information["kanji"]}')
+        self.setFontSize(self.kanjiLearnCounter, 14)
 
         self.kanjiProgressBarSubContainer = QHBoxLayout()
 
@@ -128,12 +156,14 @@ class LevelPage(QWidget):
         self.kanjiProgressBarContainer.setContentsMargins(0,30,0,60)
 
         self.grammarProgressBar.setMinimum(0)
-        self.grammarProgressBar.setMaximum(100)
-        self.grammarProgressBar.setValue(self.progress_information["grammar"]//self.total_information["grammar"]*100)
+        self.grammarProgressBar.setMaximum(self.total_information["grammar"])
+        self.grammarProgressBar.setValue(self.progress_information["grammar"])
         self.grammarProgressBar.setTextVisible(False)
 
         self.grammarLabel = QLabel("Grammar learnt", self)
+        self.setFontSize(self.grammarLabel, 14)
         self.grammarLearnCounter = QLabel(f'{self.progress_information["grammar"]}/{self.total_information["grammar"]}')
+        self.setFontSize(self.grammarLearnCounter, 14)
 
         self.grammarProgressBarSubContainer = QHBoxLayout()
 
@@ -161,8 +191,11 @@ class LevelPage(QWidget):
 
         self.buttonLayout = QGridLayout()
         self.buttonLayout.setProperty("class", "buttonLayout")
-        for b in list(buttons.keys()):
-            self.buttons.append(ModeSelectButton(b))
+        self.buttonLayout.setAlignment(Qt.AlignmentFlag.AlignCenter)
+        for b in range(len(list(buttons.keys()))):
+            idx = list(buttons.keys())[b]
+            if buttons[idx]['display']:
+                self.buttons.append(ModeSelectButton(idx))
             
         self.buttonLayout.addWidget(self.buttons[0], 0, 2, 1, 3)
         self.buttonLayout.addWidget(self.buttons[1], 2, 0, 1, 3)
@@ -219,6 +252,10 @@ class LevelPage(QWidget):
             self.progress_information["kanji"] = self.kanjis_learnt
             print(self.progress_information)
 
+    def setFontSize(self, obj: QWidget, size: int):
+        font = obj.font()
+        font.setPointSize(size)
+        obj.setFont(font)
 
     def buttonClicked(self, id):
         if id == 1:
@@ -231,6 +268,8 @@ class LevelPage(QWidget):
             self.parent().displayWordMatchPage()
         elif id == 5:
             pass
+        elif id == 6:
+            self.parent().displayKanjiSpellPage()
 
     def updateProgressBars(self):
         self.grammarProgressBar.setValue(self.progress_information["grammar"])

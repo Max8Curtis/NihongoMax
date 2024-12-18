@@ -107,5 +107,7 @@ class Home(QWidget):
     def displayWordMatchPage(self):
         self.parent().displayWordMatchPage()
 
+    def displayKanjiSpell(self):
+        self.parent().displayKanjiSpellPage()
 
 
