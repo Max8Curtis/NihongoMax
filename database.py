@@ -521,18 +521,18 @@ if __name__ == "__main__":
     # db.insert_grammar_batch("assets//grammar//n1.csv", "N1")
     # db.insert_grammar_batch("assets//grammar//n2.csv", "N2")
     # db.insert_grammar_batch("assets//grammar//n3.csv", "N3")
-    # level = 'N1'
-    # user = 1
+    level = 'N1'
+    user = 1
     # grammars_learnt = db.get_num_grammars_at_level_user(level, user)
     # print(grammars_learnt)
     # words_learnt = db.get_num_words_at_level_user(level, user)
     # print(words_learnt)
     # kanjis_learnt = db.get_num_kanjis_at_level_user(level, user)
     # print(kanjis_learnt)
-    # words = [x[0] for x in db.get_words_at_level(level)]
-    # print(words)
-    # db.add_user_words(words, user)
-    db.insert_words_batch(r'assets//words//n1.csv', 'N1')
+    words = [x[0] for x in db.get_words_at_level(level)]
+    print(words)
+    db.add_user_words(words, user)
+    # db.insert_words_batch(r'assets//words//n1.csv', 'N1')
     # if result[0][0] is None:
     #     word_id = 1
 

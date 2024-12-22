@@ -16,7 +16,7 @@ from PyQt6.QtWidgets import (
 from PyQt6.QtGui import QPixmap, QAction, QCursor
 from PyQt6 import QtCore
 from assets.styles.colors import Color
-from assets.widgets import SelectWordField
+from assets.widgets import SelectWordField, StartButton
 from assets.tools import Tools
 tools = Tools()
 
@@ -90,16 +90,19 @@ class PlayArea(QWidget):
 
         self.select_words_field = SelectWordField(parent=self, words=self.words)
 
-        self.start_button = QPushButton()
-        self.start_button.setMinimumHeight(50)
-        self.start_button.clicked.connect(self.startBtnPressed)
-        self.start_button_layout = QHBoxLayout()
-        self.start_button_layout.setAlignment(Qt.AlignmentFlag.AlignCenter)
-        self.start_label = QLabel('Start')
-        self.setFontSize(self.start_label, 18)
-        self.start_button_layout.addWidget(self.start_label)
-        self.start_button.setCursor(QCursor(QtCore.Qt.CursorShape.PointingHandCursor))
-        self.start_button.setLayout(self.start_button_layout)
+        # self.start_button = QPushButton()
+        # self.start_button.setMinimumHeight(50)
+        # self.start_button.clicked.connect(self.startBtnPressed)
+        # self.start_button_layout = QHBoxLayout()
+        # self.start_button_layout.setAlignment(Qt.AlignmentFlag.AlignCenter)
+        # self.start_label = QLabel('Start')
+        # self.setFontSize(self.start_label, 18)
+        # self.start_button_layout.addWidget(self.start_label)
+        # self.start_button.setCursor(QCursor(QtCore.Qt.CursorShape.PointingHandCursor))
+        # self.start_button.setProperty("class", "button")
+        # self.start_button.setLayout(self.start_button_layout)
+        self.start_button = StartButton()
+        # self.start_button.clicked.connect(self.startBtnPressed)
 
         self.select_words_container.addLayout(self.score_container)
         self.select_words_container.addWidget(self.select_words_field)
@@ -113,6 +116,9 @@ class PlayArea(QWidget):
             self.button_container.addWidget(self.buttons[i], i//self.size, i%self.size)
         
         # self.populateArea()
+
+        with open(styles, "r") as f:
+            self.setStyleSheet(f.read())
 
         print(self.button_container.itemAtPosition(0,0))
         self.setLayout(self.container)
@@ -393,6 +399,7 @@ class WordMatchPage(QWidget):
         self.toggle_hg_button.setCursor(QCursor(QtCore.Qt.CursorShape.PointingHandCursor))
         self.toggle_hg_button.setMinimumWidth(150)
         self.toggle_hg_button.setMaximumHeight(40)
+        self.toggle_hg_button.setProperty("class", "button")
         self.setFontSize(self.toggle_hg_button, 14)
 
         self.meta_buttons_container.addWidget(self.toggle_hg_button)
@@ -425,6 +432,9 @@ class WordMatchPage(QWidget):
         # self.select_button = QPushButton('Select Words')
         # self.select_button.clicked.connect(self.selectWords)
         # self.outer_container.addWidget(self.select_button)
+
+        with open(styles, "r") as f:
+            self.setStyleSheet(f.read())
 
         self.setLayout(self.outer_container)
 
