@@ -132,12 +132,14 @@ class SelectWordField(QWidget):
         self.setLayout(self.outer_container)
 
     def getChosenWords(self):
-        return [word.getIdx() for word in self.list_items if word.getSelected()]
+        word_ids = [word.getIdx() for word in self.list_items if word.getSelected()]
+        return word_ids
+        # return self.words.iloc[np.where(self.words['id'] in word_ids)]
 
     def updateItem(self):
         print(f'{self.list_widget.currentRow()} clicked!')
         self.list_items[self.list_widget.currentRow()].clicked()
-        self.parent().setSelected(self.list_items[self.list_widget.currentRow()].getIdx(), self.list_items[self.list_widget.currentRow()].getSelected())
+        # self.parent().setSelected(self.list_items[self.list_widget.currentRow()].getIdx(), self.list_items[self.list_widget.currentRow()].getSelected())
 
     def selectAllBtnPressed(self):
         self.select_all_pressed = not self.select_all_pressed

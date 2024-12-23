@@ -3,6 +3,7 @@ from bs4 import BeautifulSoup
 import requests
 import shutil
 import random
+import numpy as np
 
 import math
 
@@ -129,7 +130,9 @@ class PlayArea(QWidget):
         self.words.assign(selected=False)
         self.started = True
         self.resetButtons()
-        self.chosen_words = self.words[self.words['selected'] == True]
+        # self.chosen_words = self.words[self.words['selected'] == True]
+        chosen_word_ids = self.select_words_field.getChosenWords()
+        self.chosen_words = self.words[self.words['id'].isin(chosen_word_ids)]
         self.num_words = min((self.size**2)//2, self.chosen_words.shape[0])
         print(f'num words: {self.num_words}')
         self.startRound()
@@ -276,7 +279,7 @@ class WordButton(QWidget):
             }
 
             QPushButton:hover {
-                background-color: #ebebe7;
+                background-color: #b7e3f7;
             }
                                   
             # QPushButton:pressed {

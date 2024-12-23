@@ -3,8 +3,10 @@ from bs4 import BeautifulSoup
 import requests
 import shutil
 import random
+from romaji.convert import Convert
+import time
 
-from PyQt6.QtCore import QSize, Qt
+from PyQt6.QtCore import QSize, Qt, QTimer
 from PyQt6.QtWidgets import (
     QApplication, QMainWindow, QPushButton, QLabel, 
     QLineEdit, QVBoxLayout, QHBoxLayout, QWidget, QToolBar,
@@ -27,6 +29,15 @@ class PlayArea(QWidget):
         self.words = words
         self.started = False
         self.words['selected'] = [False for i in range(self.words.shape[0])]
+        self.answer_submitted = False
+        self.current = 0
+        self.display_en = False
+        self.kanji_fontsize = 50
+        self.english_fontsize = 42
+        self.answer_fontsize = 32
+        self.prev_input_text = ""
+        self.input_text = ""
+        self.convert = Convert()
 
         self.container = QHBoxLayout()
     
@@ -71,13 +82,13 @@ class PlayArea(QWidget):
         self.play_area_container.setAlignment(Qt.AlignmentFlag.AlignCenter)
 
         self.kanji_label = QLabel('漢字')
-        self.setFontSize(self.kanji_label, 50)
+        self.setFontSize(self.kanji_label, self.kanji_fontsize)
 
-        self.english_label = QLabel('Kanji')
-        self.setFontSize(self.english_label, 42)
+        self.english_label = QLabel('')
+        self.setFontSize(self.english_label, self.english_fontsize)
 
-        self.answer_label = QLabel('kanji')
-        self.setFontSize(self.answer_label, 32)
+        self.answer_label = QLabel('')
+        self.setFontSize(self.answer_label, self.answer_fontsize)
 
         self.answer_input = QLineEdit()
         self.answer_input.setMaxLength(15)
@@ -85,7 +96,7 @@ class PlayArea(QWidget):
         self.answer_input.editingFinished.connect(self.enterBtnPressed)
         self.answer_input.setProperty("class", "answerInput")
         self.answer_input.setAlignment(Qt.AlignmentFlag.AlignCenter)              # <-----
-        self.answer_input.textChanged.connect(self.textChanged)
+        self.answer_input.textEdited.connect(self.textInputted)
         self.setFontSize(self.answer_input, 14)
 
         self.enter_button = QPushButton()
@@ -127,28 +138,107 @@ class PlayArea(QWidget):
         self.setLayout(self.container) 
 
     def startBtnPressed(self):
-        self.chosen_words = self.words[self.words['selected'] == True]
+        chosen_word_ids = self.select_words_field.getChosenWords()
+        self.chosen_words = self.words[self.words['id'].isin(chosen_word_ids)]
         print(self.chosen_words)
         self.started = True
+        self.queue = self.chosen_words[['ka', 'hg', 'en']].sample(self.chosen_words.shape[0])
+        self.startGame()
+
+    def startGame(self):
+        self.queue = self.chosen_words[['ka', 'hg', 'en']].sample(self.chosen_words.shape[0])
+        self.current = 0
+        self.displayQuestion(self.current)
+
+    def textInputted(self, text):
+        if len(self.prev_input_text) > len(text): # backspace was pressed
+            
+            self.input_text = self.input_text[:len(self.input_text)-1]
+        else:
+            if len(self.answer_input.text()) > 0:
+                self.input_text += self.answer_input.text()[-1]
+
+        self.prev_input_text = text
+        # print(text)
+        print(self.input_text)
+        hiragana = self.convert.romajiToJapanese(self.input_text)
+        print(hiragana)
+        self.answer_input.setText(hiragana)
+
+
+    def displayQuestion(self, idx):
+        self.kanji_label.setText(self.queue['ka'].iloc[idx])
+        self.setFontSize(self.kanji_label, self.kanji_fontsize)
+        if self.display_en:
+            self.english_label.setText(self.queue['en'].iloc[idx])
+            self.setFontSize(self.english_label, self.english_fontsize)
+
+    def checkAnswer(self, ans):
+        return self.convert.romajiToJapanese(self.input_text) == ans
 
     def enterBtnPressed(self):
+        self.prev_input_text = ""
         if self.started:
-            current_text = self.answer_input.text()
-            print(current_text)
+            is_correct = self.checkAnswer(self.queue['hg'].iloc[self.current])
+            if is_correct:
+                print("Correct!")
+                # self.answer_label.setText("Correct!")
+                self.answer_input.setStyleSheet("""
+                    min-height: 50px;
+                    min-width: 150px;
+                    background-color: #02ce79;
+                    font-family: 'Arial', sans-serif;
+                    color: white;
+                """)
+            else:
+                print("Incorrect!")
+                # self.answer_label.setText("Not quite!")
+                self.answer_input.setStyleSheet("""
+                    min-height: 50px;
+                    min-width: 150px;
+                    background-color: #e74545;
+                    font-family: 'Arial', sans-serif;
+                    color: white;
+                """)
+
+            self.setFontSize(self.answer_label, self.answer_fontsize)
+            # self.answer_label.setText("")
+            self.timer = QtCore.QTimer(self)
+            self.timer.setInterval(500)
+            self.timer.timeout.connect(self.resetAnswerLabel)
+            self.timer.start()
+            self.answer_input.setText(None)
+            self.input_text = ""
+            self.current += 1
+            if self.current < self.queue.shape[0]: # if there are still questions left
+                self.displayQuestion(self.current)
+            else:
+                if self.loop_radio.isChecked(): # loop mode
+                    self.startGame()
+                elif self.timer_radio.isChecked():
+                    print("Stop timer!")
+
+    def resetAnswerLabel(self):
+        # self.answer_label.setText("")
+        self.answer_input.setStyleSheet("""
+            min-height: 50px;
+            min-width: 150px;
+            font-family: 'Arial', sans-serif;
+        """)
 
     def englishToggled(self, state):
         if state == 0:
-            state = False
+            self.display_en = False
         else:
-            state = True
+            self.display_en = True
 
     def setSelected(self, idx, state):
         self.words.loc[self.words['id'] == idx, 'selected'] = state
 
-    def textChanged(self, text):
-        # width = self.answer_input.fontMetrics().width(text)
-        # self.answer_input.setMinimumWidth(width)
-        pass
+    # def textChanged(self, text):
+    #     # width = self.answer_input.fontMetrics().width(text)
+    #     # self.answer_input.setMinimumWidth(width)
+    #     pass
     
     def timerRadioToggled(self, state):
         # if state:
