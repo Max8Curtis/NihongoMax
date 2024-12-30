@@ -35,20 +35,22 @@ class QCustomListWidget(QWidget):
 
     def updateStyle(self):
         if self.selected: # If item is selected when it is pressed, it should now be displayed as unselected
-            self.jp_text.setStyleSheet(self.unselected_style)
-            self.en_text.setStyleSheet(self.unselected_style)
-        else:
             self.jp_text.setStyleSheet(self.selected_style)
             self.en_text.setStyleSheet(self.selected_style)
+        else:
+            self.jp_text.setStyleSheet(self.unselected_style)
+            self.en_text.setStyleSheet(self.unselected_style)
         
     def clicked(self):
-        self.updateStyle()
         self.selected = not self.selected
+        self.updateStyle()
+        
 
     def setSelected(self, s):
         if type(s) == bool:
-            self.updateStyle()
             self.selected = s
+            self.updateStyle()
+            
             
     def getSelected(self):
         return self.selected
@@ -150,4 +152,4 @@ class SelectWordField(QWidget):
 
         for i in range(len(self.list_items)):
             self.list_items[i].setSelected(self.select_all_pressed)
-            self.parent().setSelected(self.list_items[i].getIdx(), self.select_all_pressed)
+            # self.parent().setSelected(self.list_items[i].getIdx(), self.select_all_pressed)

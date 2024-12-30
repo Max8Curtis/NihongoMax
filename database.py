@@ -271,19 +271,19 @@ class Database:
         return level_id
 
     def insert_words_batch(self, file, level):
-        df = pd.read_csv(file, names=["id", "jp", "ro", "hg", "types", "en"])
+        df = pd.read_csv(file, names=['id', 'ka', 'hg', 'ro', 'types', 'en'])
 
         query = "BEGIN TRANSACTION;" # Perform batch insert to avoid half-complete insert in case of failure
         self.cursor.execute(query)
 
         for i in range(df.shape[0]): # For each new word being added
-            print(df["jp"].iloc[i])
+            print(df["ka"].iloc[i])
             # Check if word is already in the database
-            query = f"SELECT * FROM words WHERE words.word_ka = '{df['jp'].iloc[i]}';"
+            query = f"SELECT * FROM words WHERE words.word_ka = '{df['ka'].iloc[i]}';"
             result = self.cursor.execute(query).fetchall()
             print(result)
             if result != []:
-                print(f"word {df['jp'].iloc[i]} already exists")
+                print(f"word {df['ka'].iloc[i]} already exists")
                 continue
             types = []
             for x in df['types'].iloc[i].split("'"): # types list is loaded as string, so convert to list
@@ -319,7 +319,7 @@ class Database:
 
             level_id = self.get_level(level)
 
-            values = [word_id, df["jp"].iloc[i], df["hg"].iloc[i], df["en"].iloc[i], level_id]
+            values = [word_id, df["ka"].iloc[i], df["hg"].iloc[i], df["en"].iloc[i], level_id]
 
             query = "INSERT INTO words (word_id, word_ka, word_hg, word_en, level_id) VALUES (?,?,?,?,?)"
             self.cursor.execute(query, values)
@@ -529,10 +529,12 @@ if __name__ == "__main__":
     # print(words_learnt)
     # kanjis_learnt = db.get_num_kanjis_at_level_user(level, user)
     # print(kanjis_learnt)
-    words = [x[0] for x in db.get_words_at_level(level)]
-    print(words)
-    db.add_user_words(words, user)
-    # db.insert_words_batch(r'assets//words//n1.csv', 'N1')
+    # words = [x[0] for x in db.get_words_at_level(level)]
+    # print(words)
+    # db.add_user_words(words, user)
+    for i in range(1,6):
+        db.insert_words_batch(rf'assets//words//n{i}.csv', f'N{i}')
+    # db.insert_words_batch(rf'assets//words//n5.csv', f'N5')
     # if result[0][0] is None:
     #     word_id = 1
 
