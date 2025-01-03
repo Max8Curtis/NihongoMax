@@ -25,8 +25,8 @@ class Tools:
         font-family: Titillium;
         """
     
-    def getPageTitle(self, level):
-        title = QLabel(f'{level.upper()} Word Match')
+    def getPageTitle(self, level, text):
+        title = QLabel(f'{level.upper()} {text}')
         self.setFontSize(title, 24)
         title.setStyleSheet(self.getPageTitleStyling(level))
         return title

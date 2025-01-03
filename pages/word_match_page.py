@@ -412,7 +412,7 @@ class WordMatchPage(QWidget):
         # self.title = QLabel(f'{level.upper()} Word Match')
         # self.setFontSize(self.title, 24)
         # self.title.setStyleSheet(tools.getPageTitleStyling(self.level))
-        self.title = tools.getPageTitle(self.level)
+        self.title = tools.getPageTitle(self.level, "Word Match")
        
         self.title_bar_layout.addStretch(1)
         self.title_bar_layout.addWidget(self.title)

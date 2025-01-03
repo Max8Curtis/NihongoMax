@@ -18,11 +18,80 @@ from PyQt6.QtWidgets import (
 from PyQt6.QtGui import QPixmap, QAction, QCursor, QPainter
 from PyQt6 import QtCore
 from assets.styles.colors import Color
-from assets.widgets import SelectWordField, StartButton
+from assets.widgets import SelectWordField, StartButton, QCustomListWidget
 from assets.tools import Tools
 tools = Tools()
 
 styles = "assets\styles\styles.css"
+
+class QCustomListWidget(QCustomListWidget):
+    def __init__ (self, idx, jp, en, selected, parent = None):
+        super(QCustomListWidget, self).__init__(idx, jp, en, selected, parent)
+
+
+    def updateStyle(self):
+        pass
+
+    def clicked(self):
+        pass    
+
+    def setSelected(self, s):
+        pass     
+            
+    def getSelected(self):
+        pass
+
+    def getIdx(self):
+        pass
+
+class CustomDialog(QDialog):
+    def __init__(self, incorrect_words, num_unanswered):
+        super().__init__()
+        self.incorrect_words = incorrect_words
+        self.num_unanswered = num_unanswered
+        print(f"Num unanswered: {self.num_unanswered}")
+        print("Incorrect words: ")
+        print(self.incorrect_words)
+
+        self.setWindowTitle("Mistake report")
+
+        QBtn = (
+            QDialogButtonBox.StandardButton.Ok
+        )
+
+        self.button_box = QDialogButtonBox(QBtn)
+        self.button_box.accepted.connect(self.accept)
+        # self.buttonBox.rejected.connect(self.reject)
+        if self.num_unanswered > 0:
+            if self.num_unanswered == 1:
+                unanswered_message = QLabel(f"おそい！ However, {self.num_unanswered} word was left unanswered!")
+            else:
+                unanswered_message = QLabel(f"おそい！ However, {self.num_unanswered} words were left unanswered!")
+        else:
+            unanswered_message = QLabel(f"はやい！ You answered all the words!")
+
+        layout = QVBoxLayout()
+        if self.incorrect_words.empty:
+            message = QLabel("No mistakes, well done!")
+            layout.addWidget(message)
+            layout.addWidget(unanswered_message)
+        else:
+            message = QLabel("Some words were incorrect, have a look!")
+            layout.addWidget(message)
+            layout.addWidget(unanswered_message)
+            list_widget = QListWidget()
+            list_items = [QCustomListWidget(idx=None, jp=f"{self.incorrect_words['ka'].iloc[i]} | {self.incorrect_words['hg'].iloc[i]}", en=self.incorrect_words['en'].iloc[i], selected=None) for i in range(self.incorrect_words.shape[0])]
+            for item in list_items:
+                my_list_widget = QListWidgetItem(list_widget)
+                # Set size hint
+                my_list_widget.setSizeHint(item.sizeHint())
+                # Add QListWidgetItem into QListWidget
+                list_widget.addItem(my_list_widget)
+                list_widget.setItemWidget(my_list_widget, item)
+            layout.addWidget(list_widget)
+        layout.addWidget(self.button_box)
+        self.setLayout(layout)
+
 
 class MyQLineEdit(QLineEdit):
     def __init__(self):
@@ -47,6 +116,7 @@ class PlayArea(QWidget):
         self.english_fontsize = 20
         self.answer_fontsize = 32
         self.timer_fontsize = 16
+        self.questions_counter_fontsize = 16
         self.current_text_hg = ""
         self.convert = Convert()
         self.kks = pykakasi.kakasi()
@@ -127,18 +197,24 @@ class PlayArea(QWidget):
         self.enter_button.setLayout(self.enter_button_layout)
         self.enter_button.clicked.connect(self.enterBtnPressed)
 
+        self.timer_label_default_text = "Timer: --:--"
         self.timer_label = QLabel(None)
         self.setFontSize(self.timer_label, self.timer_fontsize)
+
+        self.questions_counter_default_text = "Questions answered: --/--"
+        self.questions_counter_label = QLabel(self.questions_counter_default_text)
+        self.setFontSize(self.questions_counter_label, self.questions_counter_fontsize)
         
         self.play_area_container.addWidget(self.timer_label, 0, 0, 1, 1, alignment=Qt.AlignmentFlag.AlignCenter)
-        self.play_area_container.addWidget(self.kanji_label, 1, 1, 1, 3, alignment=Qt.AlignmentFlag.AlignCenter)
+        self.play_area_container.addWidget(self.questions_counter_label, 0, 4, 1, 1, alignment=Qt.AlignmentFlag.AlignCenter)
+        self.play_area_container.addWidget(self.kanji_label, 1, 3, 1, 3, alignment=Qt.AlignmentFlag.AlignCenter)
         self.play_area_container.addWidget(self.english_label, 2, 1, 1, 3, alignment=Qt.AlignmentFlag.AlignCenter)
         self.play_area_container.addWidget(self.answer_label, 3, 1, 1, 3, alignment=Qt.AlignmentFlag.AlignCenter)
-        self.play_area_container.addWidget(self.answer_input, 5, 1, 1, 2, alignment=Qt.AlignmentFlag.AlignCenter)
-        self.play_area_container.addWidget(self.enter_button, 5, 3, 1, 1, alignment=Qt.AlignmentFlag.AlignCenter)
+        self.play_area_container.addWidget(self.answer_input, 5, 3, 1, 2, alignment=Qt.AlignmentFlag.AlignCenter)
+        self.play_area_container.addWidget(self.enter_button, 5, 5, 1, 1, alignment=Qt.AlignmentFlag.AlignCenter)
 
-        self.play_area_container.setColumnStretch(0,1)
-        self.play_area_container.setColumnStretch(4,1)
+        # self.play_area_container.setColumnStretch(0,1)
+        self.play_area_container.setColumnStretch(5,1)
         self.play_area_container.setRowStretch(4,1)
         self.play_area_container.setContentsMargins(0,50,0,0)
 
@@ -148,7 +224,9 @@ class PlayArea(QWidget):
 
         self.select_words_field = SelectWordField(parent=self, words=self.words)
 
+        self.container.addStretch(1)
         self.container.addLayout(self.options_play_area_container)
+        self.container.addStretch(1)
         self.container.addWidget(self.select_words_field)
 
         with open(styles, "r") as f:
@@ -160,6 +238,7 @@ class PlayArea(QWidget):
         chosen_word_ids = self.select_words_field.getChosenWords()
         self.chosen_words = self.words[self.words['id'].isin(chosen_word_ids)]
         print(self.chosen_words)
+        self.answer_input.setFocus()
         if self.chosen_words.shape[0] > 0:
             self.started = True
             self.queue = self.chosen_words[['ka', 'hg', 'en']].sample(self.chosen_words.shape[0])
@@ -179,6 +258,8 @@ class PlayArea(QWidget):
     def startGame(self):
         self.queue = self.chosen_words[['ka', 'hg', 'en']].sample(self.chosen_words.shape[0])
         self.current = 0
+        self.updateQuestionCounterLabel()
+        self.incorrect_words = []
         if self.timer_radio.isChecked():
             self.time_limit = self.spin_box.value()
             print(self.time_limit)
@@ -193,24 +274,36 @@ class PlayArea(QWidget):
         self.updateTimerLabel()
 
     def updateTimer(self):
+        print("TIMER UPDATED")
         self.time_limit -= 1
         self.updateTimerLabel()
-        if self.time_limit == 0:
-            self.started = False
-            self.timer.stop()
-            self.resetGame()
-            return None
+        self.gameEnd()
+        # if self.time_limit == 0:
+        #     self.started = False
+            # self.timer.stop()
+            # self.displayIncorrectWords()
+            # self.resetGame()
+            
+        return None
         
-        print(f"Time left: {self.time_limit}")
+        # print(f"Time left: {self.time_limit}")
         
     def resetGame(self):
         self.time_limit = 0
+        self.current = 0
+        self.game_ended = False
         self.resetEnglishLabel()
         self.resetAnswerLabel()
         self.resetAnswerInput()
         self.resetTimerLabel()
         self.resetKanjiLabel()
+        self.incorrect_words = None
+        self.questions_counter_label.setText(self.questions_counter_default_text)
         self.started = False
+
+    def updateQuestionCounterLabel(self):
+        self.questions_counter_label.setText(f"Questions answered: {self.current}/{self.queue.shape[0]}")
+        self.setFontSize(self.questions_counter_label, self.questions_counter_fontsize)
 
     def updateTimerLabel(self):
         mins = self.time_limit // 60
@@ -257,6 +350,7 @@ class PlayArea(QWidget):
     def enterBtnPressed(self):
         self.prev_input_text = ""
         if self.started:
+            print(self.current)
             is_correct = self.checkAnswer(self.queue['hg'].iloc[self.current])
             if is_correct:
                 print("Correct!")
@@ -279,7 +373,8 @@ class PlayArea(QWidget):
                     color: white;
                 """)
                 self.answer_label
-
+                self.incorrect_words.append(self.current)
+            
             self.setFontSize(self.answer_label, self.answer_fontsize)
             self.answer_timer = QtCore.QTimer(self)
             # self.answer_timer.setInterval(750)
@@ -289,14 +384,39 @@ class PlayArea(QWidget):
             self.current_text_hg = ""
             self.answer_label.setText(None)
             self.current += 1
-            if self.current < self.queue.shape[0]: # if there are still questions left
-                self.displayQuestion()
-            else:
-                if self.loop_radio.isChecked(): # loop mode
-                    self.startGame()
-                elif self.timer_radio.isChecked():
-                    self.timer.stop()
-                    self.resetGame()
+            self.updateQuestionCounterLabel()
+            self.gameEnd()
+
+    def gameEnd(self):
+        if self.time_limit == 0: #and not self.game_ended:
+            self.started = False
+            self.timer.stop()
+            # self.game_ended = True
+            # print(f"Game ended by timer? {self.game_ended}")
+            self.displayIncorrectWords()
+            self.resetGame()
+            return None
+        
+        if self.current < self.queue.shape[0]: # if there are still questions left
+            self.displayQuestion()
+        else:
+            if self.loop_radio.isChecked(): # loop mode
+                self.startGame()
+            elif self.timer_radio.isChecked():
+                # self.game_ended = True
+                self.started = False
+                # print(f"Game ended by questions over? {self.game_ended}")
+                # self.current -= 1
+                self.timer.stop()
+                self.displayIncorrectWords()
+                
+                self.resetGame()
+                    
+        return None
+
+    def displayIncorrectWords(self):
+        dlg = CustomDialog(self.chosen_words.iloc[self.incorrect_words], self.queue.shape[0]-self.current)
+        dlg.exec()
 
     def resetKanjiLabel(self):
         self.kanji_label.setText("--")
@@ -343,6 +463,11 @@ class PlayArea(QWidget):
         font.setPointSize(size)
         obj.setFont(font)
         return obj
+    
+class Options(QWidget):
+    def __init__(self):
+        super().__init__()
+        
 
 class KanjiSpellPage(QWidget):
     def __init__(self, level):
@@ -368,7 +493,7 @@ class KanjiSpellPage(QWidget):
         self.title_bar_layout = QHBoxLayout()
         self.title_bar_layout.setAlignment(Qt.AlignmentFlag.AlignCenter)
 
-        self.title = tools.getPageTitle(self.level)
+        self.title = tools.getPageTitle(self.level, "Kanji Spell")
         self.title_bar_layout.addWidget(self.title)
 
         self.container.addLayout(self.title_bar_layout)
