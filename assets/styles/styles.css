@@ -21,6 +21,10 @@ QPushButton:hover {
 
 } */
 
+.button {
+    background-color: white;
+}
+
 .button:hover {
     background-color: #CCF4FF;
 }
@@ -69,3 +73,8 @@ QPushButton:hover {
     padding-left: 20px;
 }
 
+QToolTip {
+    background-color: white;
+    color: black;
+    font-size: 12px;
+}

@@ -114,7 +114,7 @@ class SelectWordField(QWidget):
         self.outer_container.addWidget(self.select_all_btn)
 
         self.list_widget = QListWidget()
-        self.list_widget.setMinimumWidth(350)
+        self.list_widget.setMinimumWidth(300)
         self.list_items = [QCustomListWidget(idx=words['id'].iloc[i], jp=words['ka'].iloc[i], en=words['en'].iloc[i], selected=False) for i in range(self.words.shape[0])]
         for item in self.list_items:
             my_list_widget = QListWidgetItem(self.list_widget)

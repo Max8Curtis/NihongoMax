@@ -230,6 +230,16 @@ class PlayArea(QWidget):
         obj.setFont(font)
         return obj
     
+    def keyPressEvent(self, event):
+        # Override the key pressing event to handle ESCAPE, where currently selected button should be deselected
+        if event.key() == Qt.Key.Key_Escape:
+            if not self.pressed_button['idx'] is None:
+                self.buttons[self.pressed_button['idx']].setUnselectedStyle()
+                for x in list(self.pressed_button.keys()):
+                    self.pressed_button[x] = None
+            # self.key_label.setText('Key Event: Escape Pressed')
+
+    
 class WordButton(QWidget):
     def __init__(self, id=None, type=None, ka=None, hg=None, en=None):
         super().__init__()
