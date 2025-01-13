@@ -13,9 +13,10 @@ from PyQt6.QtWidgets import (
     QLineEdit, QVBoxLayout, QHBoxLayout, QWidget, QToolBar,
     QStatusBar, QStackedLayout, QGridLayout, QCheckBox, QMenu,
     QDialog, QDialogButtonBox, QComboBox, QScrollArea, QListWidget,
-    QAbstractButton, QListWidgetItem, QRadioButton, QSpinBox
+    QAbstractButton, QListWidgetItem, QRadioButton, QSpinBox, QToolTip,
+    QSpacerItem, QSizePolicy
 )
-from PyQt6.QtGui import QPixmap, QAction, QCursor, QPainter
+from PyQt6.QtGui import QPixmap, QAction, QCursor, QPainter, QBrush
 from PyQt6 import QtCore
 from assets.styles.colors import Color
 from assets.widgets import SelectWordField, StartButton, QCustomListWidget
@@ -64,9 +65,9 @@ class CustomDialog(QDialog):
         # self.buttonBox.rejected.connect(self.reject)
         if self.num_unanswered > 0:
             if self.num_unanswered == 1:
-                unanswered_message = QLabel(f"おそい！ However, {self.num_unanswered} word was left unanswered!")
+                unanswered_message = QLabel(f"おそい！ {self.num_unanswered} word was left unanswered!")
             else:
-                unanswered_message = QLabel(f"おそい！ However, {self.num_unanswered} words were left unanswered!")
+                unanswered_message = QLabel(f"おそい！ {self.num_unanswered} words were left unanswered!")
         else:
             unanswered_message = QLabel(f"はやい！ You answered all the words!")
 
@@ -104,9 +105,10 @@ class MyQLineEdit(QLineEdit):
         self.keyPressed.emit(event.key())
 
 class PlayArea(QWidget):
-    def __init__(self, words):
+    def __init__(self, words, level):
         super().__init__()
         self.words = words
+        self.level = level
         self.started = False
         self.words['selected'] = [False for i in range(self.words.shape[0])]
         self.answer_submitted = False
@@ -121,116 +123,231 @@ class PlayArea(QWidget):
         self.convert = Convert()
         self.kks = pykakasi.kakasi()
         self.time_limit = 1
+        
+        self.colors = Color()
 
         self.container = QHBoxLayout()
     
         self.options_container = QHBoxLayout()
         self.options_grid = QGridLayout()
+
+        self.options_label = QLabel('Options:')
+        self.options_label.setObjectName("optionsLabel")
+        # self.setFontSize(self.options_label, 20)
+        self.options_container.addWidget(self.options_label)
+        self.options_container.addStretch(1)
+
+        self.spin_box = QSpinBox(self)
+        self.spin_box.setObjectName("timeSelectSpinBox")
+        self.spin_box.setRange(0, 600)  # Set the range of values
+        self.spin_box.setValue(1)
+
+        self.loop_radio = QRadioButton('Loop', self)
+        self.loop_radio.setObjectName("kanjiSpellOption")
+        self.loop_radio.setChecked(True)
+        
+        self.timer_radio = QRadioButton('Timer (seconds)', self)
+        self.timer_radio.toggled.connect(self.timerRadioToggled)
+        self.timer_radio.setObjectName("kanjiSpellOption")
+        self.spin_box.setEnabled(False)
+        # self.spin_box.setStyleSheet("""background: #e8e8e5;""")
+
+        self.remove_seconds_button = QPushButton('-10s')
+        self.remove_seconds_button.setEnabled(False)
+        self.remove_seconds_button.clicked.connect(self.removeSeconds)
+        # self.remove_seconds_button.setProperty("class", "button")
+        self.remove_seconds_button.setObjectName("changeTimerButton")
+        # self.remove_seconds_button.setMaximumWidth(40)
+        self.remove_seconds_button.setCursor(QCursor(QtCore.Qt.CursorShape.PointingHandCursor))
+
+        self.add_seconds_button = QPushButton('+10s')
+        self.add_seconds_button.setEnabled(False)
+        self.add_seconds_button.clicked.connect(self.addSeconds)
+        # self.add_seconds_button.setProperty("class", "button")
+        self.add_seconds_button.setObjectName("changeTimerButton")
+        # self.add_seconds_button.setMaximumWidth(40)
+        self.add_seconds_button.setCursor(QCursor(QtCore.Qt.CursorShape.PointingHandCursor))
+
+        self.toggle_english_checkbox = QCheckBox('Display English')
+        self.toggle_english_checkbox.setObjectName("kanjiSpellOption")
+        self.toggle_english_checkbox.stateChanged.connect(self.englishToggled)
+
+        self.options_grid.addWidget(self.loop_radio, 1, 1)
+        self.options_grid.addWidget(self.timer_radio, 2, 1)   
+        self.options_grid.addWidget(self.spin_box, 2, 2)
+        self.options_grid.addWidget(self.add_seconds_button, 2, 3)
+        self.options_grid.addWidget(self.remove_seconds_button, 2, 4)
+        self.options_grid.addWidget(self.toggle_english_checkbox, 3, 1)
+
         self.options_grid.setColumnMinimumWidth(2, 100)
-        self.options_grid.setColumnStretch(3, 1)
-        self.options_grid.setColumnStretch(5, 1)
+        # self.options_grid.setColumnStretch(3, 1)
+        # self.options_grid.setColumnStretch(5, 1)
         self.options_grid.setColumnStretch(0, 1)
         self.options_grid.setRowStretch(0,1)
         self.options_grid.setRowStretch(4,1)
 
-        self.options_label = QLabel('Options:')
-        self.setFontSize(self.options_label, 20)
-        self.options_container.addWidget(self.options_label)
+        
 
-        self.spin_box = QSpinBox(self)
-        self.spin_box.setRange(0, 600)  # Set the range of values
-        self.spin_box.setValue(1)
-        self.loop_radio = QRadioButton('Loop', self)
-        self.loop_radio.setChecked(True)
-        self.options_grid.addWidget(self.loop_radio, 1, 1)   
-        self.timer_radio = QRadioButton('Timer (seconds)', self)
-        self.timer_radio.toggled.connect(self.timerRadioToggled)
-        self.spin_box.setEnabled(False)
-        self.options_grid.addWidget(self.timer_radio, 2, 1)   
-        self.options_grid.addWidget(self.spin_box, 2, 2)
-        self.toggle_english_checkbox = QCheckBox('Display English')
-        self.toggle_english_checkbox.stateChanged.connect(self.englishToggled)
-        self.options_grid.addWidget(self.toggle_english_checkbox, 3, 1)
+        self.start_button = StartButton()
+        # self.options_grid.addWidget(self.start_button, 2, 5)
 
         self.options_container.addLayout(self.options_grid)
 
-        self.start_button = StartButton()
-        self.options_grid.addWidget(self.start_button, 2, 4)
+        self.options_container.addStretch(2)
+
+
 
         self.options_play_area_container = QVBoxLayout()
 
         self.options_play_area_container.addLayout(self.options_container)
 
-        self.play_area_container = QGridLayout()
-        self.play_area_container.setAlignment(Qt.AlignmentFlag.AlignCenter)
+        # self.play_area_container = QGridLayout()
+        # self.play_area_container.setAlignment(Qt.AlignmentFlag.AlignCenter)
 
         self.kanji_label = QLabel('--')
-        self.setFontSize(self.kanji_label, self.kanji_fontsize)
-        self.kanji_label.setToolTip(None)
+        # self.setFontSize(self.kanji_label, self.kanji_fontsize)
+        # self.kanji_label.setToolTip(None)
+        self.kanji_label.setAlignment(Qt.AlignmentFlag.AlignCenter)
+        # self.kanji_label.setStyleSheet("""background: rgba(0,0,0,0)""")
+        self.kanji_label.setObjectName("kanjiSpellKanjiLabel")
 
         self.english_label = QLabel('')
-        self.setFontSize(self.english_label, self.english_fontsize)
+        self.english_label.setWordWrap(True)
+        self.english_label.setObjectName("kanjiSpellEnglishLabel")
+        # self.english_label.setMaximumWidth(270)
+        # self.english_label.setMinimumHeight(100)
+        self.english_label.setAlignment(Qt.AlignmentFlag.AlignCenter)
+        # self.english_label.setStyleSheet("""background: rgba(0,0,0,0)""")
+        # self.setFontSize(self.english_label, self.english_fontsize)
 
         self.answer_label = QLabel('')
-        self.setFontSize(self.answer_label, self.answer_fontsize)
+        self.answer_label.setAlignment(Qt.AlignmentFlag.AlignCenter)
+        self.answer_label.setObjectName("kanjiSpellAnswerLabel")
+        # self.answer_label.setStyleSheet("""background: rgba(0,0,0,0)""")
+        # self.setFontSize(self.answer_label, self.answer_fontsize)
 
+        self.answer_layout = QHBoxLayout()
+        self.answer_layout.addStretch(1)
         self.answer_input = QLineEdit()
+        self.answer_input.setObjectName("kanjiSpellAnswerInput")
         self.answer_input.setMaxLength(15)
-        self.answer_input.setMinimumWidth(200)
-        self.answer_input.editingFinished.connect(self.enterBtnPressed)
-        self.answer_input.setProperty("class", "answerInput")
+        self.answer_input.returnPressed.connect(self.enterBtnPressed)
+        # self.answer_input.setProperty("class", "answerInput")
         self.answer_input.setAlignment(Qt.AlignmentFlag.AlignCenter)              # <-----
         self.answer_input.textEdited.connect(self.textInputted)
-        # self.answer_input.keyPressed.connect(self.onKey)
-        self.setFontSize(self.answer_input, 14)
+        # self.answer_input.setStyleSheet("""background: rgba(247, 247, 247, 1)""")
+        # self.setFontSize(self.answer_input, 14)
+        self.answer_layout.addWidget(self.answer_input)
 
         self.enter_button = QPushButton()
-        self.enter_button.setMinimumHeight(60)
-        self.enter_button.setMinimumWidth(80)
+        self.enter_button.setObjectName("kanjiSpellEnterButton")
+        # self.enter_button.setMinimumHeight(60)
+        # self.enter_button.setMinimumWidth(80)
+        # self.enter_button.setMaximumWidth(100)
         self.enter_button_layout = QHBoxLayout()
         self.enter_button_layout.setAlignment(Qt.AlignmentFlag.AlignCenter)
         self.enter_label = QLabel('Enter')
-        self.setFontSize(self.enter_label, 14)
+        # self.enter_label.setStyleSheet("""background: rgba(0,0,0,0)""")
+        # self.setFontSize(self.enter_label, 14)
         self.enter_button_layout.addWidget(self.enter_label)
         self.enter_button.setCursor(QCursor(QtCore.Qt.CursorShape.PointingHandCursor))
-        self.enter_button.setProperty("class", "button")
+        # self.enter_button.setProperty("class", "button")
+        self.enter_button.setCursor(QCursor(QtCore.Qt.CursorShape.PointingHandCursor))
         self.enter_button.setLayout(self.enter_button_layout)
-        self.enter_button.clicked.connect(self.enterBtnPressed)
+        self.enter_button.setDefault(False)
+        self.enter_button.pressed.connect(self.enterBtnPressed)
+        # self.enter_button.setStyleSheet("""
+        #                                 QPushButton {
+        #                                     background: white;
+        #                                 }
+        #                                 QPushButton:hover {
+        #                                     background: #CCF4FF;
+        #                                 }""")
+        self.answer_layout.addWidget(self.enter_button)
+        self.answer_layout.addStretch(1)
 
-        self.timer_label_default_text = "Timer: --:--"
-        self.timer_label = QLabel(None)
-        self.setFontSize(self.timer_label, self.timer_fontsize)
+        self.timer_layout = QVBoxLayout()
+        self.timer_layout.setAlignment(Qt.AlignmentFlag.AlignCenter)
+        self.timer_label_default_text = "--:--"
+        self.timer_title = QLabel("Time remaining:")
+        self.timer_title.setObjectName("kanjiSpellGameplayTitle")
+        self.timer_title.setAlignment(Qt.AlignmentFlag.AlignCenter)
+        # self.timer_title.setStyleSheet("""background: rgba(0,0,0,0)""")
+        self.timer_label = QLabel(self.timer_label_default_text)
+        self.timer_label.setObjectName("kanjiSpellGamplayLabel")
+        self.timer_label.setAlignment(Qt.AlignmentFlag.AlignCenter)
+        # self.timer_label.setStyleSheet("""background: rgba(0,0,0,0)""")
+        self.timer_layout.addWidget(self.timer_title)
+        self.timer_layout.addWidget(self.timer_label)
+        # self.setFontSize(self.timer_title, self.timer_fontsize-4)
+        # self.setFontSize(self.timer_label, self.timer_fontsize)
 
-        self.questions_counter_default_text = "Questions answered: --/--"
+        self.questions_counter_layout = QVBoxLayout()
+        self.questions_counter_layout.setAlignment(Qt.AlignmentFlag.AlignCenter)
+        self.questions_counter_default_text = "--/--"
+        self.questions_counter_title = QLabel("Questions answered:")
+        self.questions_counter_title.setObjectName("kanjiSpellGameplayTitle")
+        self.questions_counter_title.setAlignment(Qt.AlignmentFlag.AlignCenter)
+        # self.questions_counter_title.setStyleSheet("""background: rgba(0,0,0,0)""")
         self.questions_counter_label = QLabel(self.questions_counter_default_text)
-        self.setFontSize(self.questions_counter_label, self.questions_counter_fontsize)
-        
-        self.play_area_container.addWidget(self.timer_label, 0, 0, 1, 1, alignment=Qt.AlignmentFlag.AlignCenter)
-        self.play_area_container.addWidget(self.questions_counter_label, 0, 4, 1, 1, alignment=Qt.AlignmentFlag.AlignCenter)
-        self.play_area_container.addWidget(self.kanji_label, 1, 3, 1, 3, alignment=Qt.AlignmentFlag.AlignCenter)
-        self.play_area_container.addWidget(self.english_label, 2, 1, 1, 3, alignment=Qt.AlignmentFlag.AlignCenter)
-        self.play_area_container.addWidget(self.answer_label, 3, 1, 1, 3, alignment=Qt.AlignmentFlag.AlignCenter)
-        self.play_area_container.addWidget(self.answer_input, 5, 3, 1, 2, alignment=Qt.AlignmentFlag.AlignCenter)
-        self.play_area_container.addWidget(self.enter_button, 5, 5, 1, 1, alignment=Qt.AlignmentFlag.AlignCenter)
+        self.questions_counter_label.setObjectName("kanjiSpellGamplayLabel")
+        # self.questions_counter_label.setStyleSheet("""background: rgba(0,0,0,0)""")
+        self.questions_counter_label.setAlignment(Qt.AlignmentFlag.AlignCenter)
+        self.questions_counter_layout.addWidget(self.questions_counter_title)
+        self.questions_counter_layout.addWidget(self.questions_counter_label)
+        # self.setFontSize(self.questions_counter_title, self.questions_counter_fontsize-4)
+        # self.setFontSize(self.questions_counter_label, self.questions_counter_fontsize)
 
-        # self.play_area_container.setColumnStretch(0,1)
-        self.play_area_container.setColumnStretch(5,1)
-        self.play_area_container.setRowStretch(4,1)
-        self.play_area_container.setContentsMargins(0,50,0,0)
+        self.timer_questions_container = QHBoxLayout()
+        self.timer_questions_container.addLayout(self.timer_layout)
+        self.timer_questions_container.addStretch(1)
+        self.timer_questions_container.addLayout(self.questions_counter_layout)
 
-        self.options_play_area_container.addLayout(self.play_area_container)
+        self.play_area_container = QVBoxLayout()
+        self.play_area_container.addLayout(self.timer_questions_container)
+        self.play_area_container.addWidget(self.kanji_label)
+        self.play_area_container.addWidget(self.english_label)
+        self.play_area_container.addWidget(self.answer_label)
+        self.play_area_container.addLayout(self.answer_layout)
+
+        self.play_area_container.setAlignment(Qt.AlignmentFlag.AlignCenter)
+
+        widget = QWidget()
+        widget.setObjectName("dummyBackgroundWidget")
+        widget.setLayout(self.play_area_container)
+        # rgb = tuple(int(self.colors.get_level_color(self.level)[i:i+2], 16) for i in (0, 2, 4))
+        # widget.setStyleSheet(f"""
+        #     background: rgba({rgb[0]}, {rgb[1]}, {rgb[2]}, 0.25);
+        #     border-radius: 3px;
+
+        # """)
+        self.options_play_area_container.addWidget(widget)
         self.options_play_area_container.setAlignment(Qt.AlignmentFlag.AlignCenter)
         self.options_play_area_container.addStretch(1)
 
+        self.select_words_container = QVBoxLayout()
         self.select_words_field = SelectWordField(parent=self, words=self.words)
+        self.select_words_field.setMaximumWidth(350)
 
-        self.container.addStretch(1)
+        # widget = QWidget()
+        # widget.setObjectName("dummyBackgroundWidget")
+        
+        self.start_button = StartButton()
+        self.select_words_container.addWidget(self.select_words_field)
+        self.select_words_container.addWidget(self.start_button)
+        # widget.setLayout(self.select_words_container)
+        # widget.setMaximumWidth(360)
+
         self.container.addLayout(self.options_play_area_container)
-        self.container.addStretch(1)
-        self.container.addWidget(self.select_words_field)
+        # self.container.addWidget(widget)
+        self.container.addLayout(self.select_words_container)
+        self.container.setContentsMargins(80,0,0,0)
 
-        with open(styles, "r") as f:
-            self.setStyleSheet(f.read())
+        # self.keyPressed = QtCore.pyqtSignal(int)
+        # self.keyPressed.connect(self.onKey)
+
+        # with open(styles, "r") as f:
+        #     self.setStyleSheet(f.read())
 
         self.setLayout(self.container) 
 
@@ -245,14 +362,17 @@ class PlayArea(QWidget):
             self.startGame()
         else:
             self.started = False
+            self.resetGame()
             self.english_label.setText("Please select some words")
             self.timer = QtCore.QTimer(self)
             self.timer.setInterval(2000)
             self.timer.timeout.connect(self.resetEnglishLabel)
             self.timer.start()
 
+
     def resetEnglishLabel(self):
         self.english_label.setText(None)
+        self.english_label.setAlignment(Qt.AlignmentFlag.AlignCenter)
         self.setFontSize(self.english_label, self.english_fontsize)
 
     def startGame(self):
@@ -260,6 +380,7 @@ class PlayArea(QWidget):
         self.current = 0
         self.updateQuestionCounterLabel()
         self.incorrect_words = []
+        self.enter_button.setAutoDefault(True)
         if self.timer_radio.isChecked():
             self.time_limit = self.spin_box.value()
             print(self.time_limit)
@@ -274,20 +395,11 @@ class PlayArea(QWidget):
         self.updateTimerLabel()
 
     def updateTimer(self):
-        print("TIMER UPDATED")
         self.time_limit -= 1
         self.updateTimerLabel()
         self.gameEnd()
-        # if self.time_limit == 0:
-        #     self.started = False
-            # self.timer.stop()
-            # self.displayIncorrectWords()
-            # self.resetGame()
-            
         return None
-        
-        # print(f"Time left: {self.time_limit}")
-        
+                
     def resetGame(self):
         self.time_limit = 0
         self.current = 0
@@ -297,30 +409,34 @@ class PlayArea(QWidget):
         self.resetAnswerInput()
         self.resetTimerLabel()
         self.resetKanjiLabel()
+        self.enter_button.setDefault(False)
         self.incorrect_words = None
         self.questions_counter_label.setText(self.questions_counter_default_text)
+        self.timer_label.setText(self.timer_label_default_text)
         self.started = False
 
     def updateQuestionCounterLabel(self):
-        self.questions_counter_label.setText(f"Questions answered: {self.current}/{self.queue.shape[0]}")
-        self.setFontSize(self.questions_counter_label, self.questions_counter_fontsize)
+        self.questions_counter_label.setText(f"{self.current}/{self.queue.shape[0]}")
+        # self.setFontSize(self.questions_counter_label, self.questions_counter_fontsize)
 
     def updateTimerLabel(self):
         mins = self.time_limit // 60
         secs = self.time_limit % 60
         if mins == 0 and secs <= 5:
             self.timer_label.setStyleSheet("""
-                color: red;                  
+                color: red;
+                background: rgba(0,0,0,0);                 
             """)
         else:
             self.timer_label.setStyleSheet("""
-                color: black;                  
+                color: black;     
+                background: rgba(0,0,0,0);              
             """)
         self.timer_label.setText(f"{'{:02d}'.format(mins)}:{'{:02d}'.format(secs)}")
 
     def onKey(self, key):
         # Test for back space key pressed
-        if key == 16777219:
+        if key == Qt.Key.Key_Backspace:
             print('back key pressed')
             if len(self.current_input_text) > 0:
                 self.current_input_text_hg = self.current_input_text_hg[:len(self.current_input_text_hg)-1]
@@ -356,8 +472,8 @@ class PlayArea(QWidget):
                 print("Correct!")
                 # self.answer_label.setText("Correct!")
                 self.answer_input.setStyleSheet("""
-                    min-height: 50px;
-                    min-width: 150px;
+                    min-height: 60px;
+                    min-width: 200px;
                     background-color: #02ce79;
                     font-family: 'Arial', sans-serif;
                     color: white;
@@ -366,8 +482,8 @@ class PlayArea(QWidget):
                 print("Incorrect!")
                 # self.answer_label.setText("Not quite!")
                 self.answer_input.setStyleSheet("""
-                    min-height: 50px;
-                    min-width: 150px;
+                    min-height: 60px;
+                    min-width: 200px;
                     background-color: #e74545;
                     font-family: 'Arial', sans-serif;
                     color: white;
@@ -393,8 +509,9 @@ class PlayArea(QWidget):
             self.timer.stop()
             # self.game_ended = True
             # print(f"Game ended by timer? {self.game_ended}")
-            self.displayIncorrectWords()
-            self.resetGame()
+            if self.timer_radio.isChecked():
+                self.displayIncorrectWords()
+                self.resetGame()
             return None
         
         if self.current < self.queue.shape[0]: # if there are still questions left
@@ -415,7 +532,7 @@ class PlayArea(QWidget):
         return None
 
     def displayIncorrectWords(self):
-        dlg = CustomDialog(self.chosen_words.iloc[self.incorrect_words], self.queue.shape[0]-self.current)
+        dlg = CustomDialog(self.queue.iloc[self.incorrect_words], self.queue.shape[0]-self.current)
         dlg.exec()
 
     def resetKanjiLabel(self):
@@ -423,20 +540,19 @@ class PlayArea(QWidget):
 
     def resetTimerLabel(self):
         self.timer_label.setText(None)
+        self.timer_label
 
     def resetAnswerInput(self):
         self.answer_input.setText(None)
 
-    def resetTimerLabel(self):
-        self.timer_label.setText(None)
-
     def resetAnswerLabel(self):
-        # self.answer_label.setText("")
-        self.answer_input.setStyleSheet("""
-            min-height: 50px;
-            min-width: 150px;
-            font-family: 'Arial', sans-serif;
-        """)
+        self.answer_label.setText(None)
+        # self.answer_input.setStyleSheet("""
+        #     min-height: 60px;
+        #     min-width: 200px;
+        #     font-family: 'Arial', sans-serif;
+        #     background: rgba(247, 247, 247, 1);
+        # """)
 
     def displayEnglish(self):
         if self.started:
@@ -445,6 +561,8 @@ class PlayArea(QWidget):
                 self.setFontSize(self.english_label, self.english_fontsize)
             else:
                 self.english_label.setText(None)
+
+            self.english_label.setAlignment(Qt.AlignmentFlag.AlignCenter)
 
     def englishToggled(self, state):
         if state == 0:
@@ -457,6 +575,28 @@ class PlayArea(QWidget):
     def timerRadioToggled(self, state):
         # if state:
         self.spin_box.setEnabled(state)
+        self.add_seconds_button.setEnabled(state)
+        self.remove_seconds_button.setEnabled(state)
+        if not state:
+            self.spin_box.setStyleSheet("""background: #e8e8e5;""")
+            self.add_seconds_button.setStyleSheet("""background: #e8e8e5;""")
+            self.remove_seconds_button.setStyleSheet("""background: #e8e8e5;""")
+        else:
+            self.spin_box.setStyleSheet("""""")
+            self.add_seconds_button.setStyleSheet("""""")
+            self.remove_seconds_button.setStyleSheet("""""")
+
+    def addSeconds(self):
+        if self.timer_radio.isChecked():
+            self.spin_box.setValue(self.spin_box.value()+10)
+
+    def removeSeconds(self):
+        if self.timer_radio.isChecked():
+            value = self.spin_box.value()
+            if value - 10 < 1:
+                self.spin_box.setValue(1)
+            else:
+                self.spin_box.setValue(value+10)
 
     def setFontSize(self, obj: QWidget, size: int):
         font = obj.font()
@@ -464,11 +604,6 @@ class PlayArea(QWidget):
         obj.setFont(font)
         return obj
     
-class Options(QWidget):
-    def __init__(self):
-        super().__init__()
-        
-
 class KanjiSpellPage(QWidget):
     def __init__(self, level):
         super().__init__()
@@ -494,11 +629,12 @@ class KanjiSpellPage(QWidget):
         self.title_bar_layout.setAlignment(Qt.AlignmentFlag.AlignCenter)
 
         self.title = tools.getPageTitle(self.level, "Kanji Spell")
+        self.title.setObjectName("pageTitle"+self.level)
         self.title_bar_layout.addWidget(self.title)
 
         self.container.addLayout(self.title_bar_layout)
 
-        self.play_area = PlayArea(self.words)
+        self.play_area = PlayArea(self.words, self.level)
         self.container.addWidget(self.play_area)
 
         self.setLayout(self.container)

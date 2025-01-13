@@ -14,6 +14,8 @@ from PyQt6.QtWidgets import (
 )
 from PyQt6.QtGui import QPixmap, QAction, QCursor, QPainter
 from PyQt6 import QtCore
+from assets.tools import Tools
+tools = Tools()
 
 styles = "assets\styles\styles.css"
 
@@ -141,7 +143,9 @@ class QCustomListWidget(QWidget):
         self.text_vbox = QVBoxLayout()
 
         self.jp_text = QLabel(f'{idx}. {jp}')
+        self.jp_text.setObjectName("selectWordFieldJp")
         self.en_text = QLabel(en)
+        self.en_text.setObjectName("selectWordFieldEn")
 
         self.text_vbox.addWidget(self.jp_text)
         self.text_vbox.addWidget(self.en_text)
@@ -175,20 +179,33 @@ class SelectGrammarField(QWidget):
 
         self.outer_container = QVBoxLayout()
 
-        self.title = QLabel('Grammar List')
-        font = self.title.font()
-        font.setPointSize(24)
-        self.title.setFont(font)
+        self.widget_layout = QVBoxLayout()
 
-        self.outer_container.addWidget(self.title)
+        widget = QWidget()
+        widget.setObjectName("selectGrammarWidget")
+
+        self.title = QLabel('Grammar List')
+        self.title.setObjectName("selectWordFieldTitle")
+
+        self.widget_layout.addWidget(self.title)
+
+        self.filter_buttons_layout = QHBoxLayout()
+
+        self.search_bar = QLineEdit()
+        self.search_bar.setObjectName("selectGrammarSearchBar")
 
         self.random_btn = QPushButton('Randomise')
-        self.random_btn.setMaximumWidth(100)
-        self.random_btn.setProperty("class", "button")
+        # self.random_btn.setMaximumWidth(100)
+        self.random_btn.setObjectName("randomiseButton")
         self.random_btn.setCursor(QCursor(QtCore.Qt.CursorShape.PointingHandCursor))
         self.random_btn.clicked.connect(self.randomBtnPressed)
 
-        self.outer_container.addWidget(self.random_btn)
+        self.filter_buttons_layout.addWidget(self.search_bar)
+        self.filter_buttons_layout.addWidget(self.random_btn)
+
+        self.widget_layout.addLayout(self.filter_buttons_layout)
+
+        # self.outer_container.addWidget(self.random_btn)
 
         self.list_widget = QListWidget()
         self.list_items = [QCustomListWidget(i+1, grammars['jp'].iloc[i], grammars['en'].iloc[i], grammars['completed'].iloc[i]) for i in range(self.grammars.shape[0])]
@@ -202,11 +219,13 @@ class SelectGrammarField(QWidget):
         # self.list_widget.addItems([f"{grammars['jp'].iloc[i]} | {grammars['en'].iloc[i]}" for i in range(grammars.shape[0])])
         self.list_widget.currentRowChanged.connect(self.rowChanged)
 
-        self.outer_container.addWidget(self.list_widget)
-        self.outer_container.setProperty("class", "select")
+        self.widget_layout.addWidget(self.list_widget)
+        # self.widget_layout.setProperty("class", "select")
 
-        with open(styles, "r") as f:
-            self.setStyleSheet(f.read())
+        # with open(styles, "r") as f:
+        #     self.setStyleSheet(f.read())
+        widget.setLayout(self.widget_layout)
+        self.outer_container.addWidget(widget)
 
         self.setLayout(self.outer_container)
 
@@ -259,16 +278,17 @@ class LessonPage(QWidget):
         self.grammars.columns = ['id', 'en', 'jp', 'url', 'level_id', 'completed']
         self.selected = 0 # Index of currently selected grammar
 
+        self.title = tools.getPageTitle(self.level, "Grammar Lesson")
+        self.title.setObjectName("pageTitle"+self.level)
+
         self.grammar_image = QLabel()
         self.grammar_title = QLabel(self.makeTitle(self.grammars['en'].iloc[0], self.grammars['jp'].iloc[0]))
-        self.grammar_title.setMaximumWidth(800)
-        font = self.grammar_title.font()
-        font.setPointSize(28)
-        self.grammar_title.setFont(font)
+        self.grammar_title.setObjectName("grammarTitle")
 
-        self.title_container = QHBoxLayout()
-        self.title_container.addWidget(self.grammar_title)
-        self.title_container.setAlignment(Qt.AlignmentFlag.AlignLeft)
+        self.title_container = QVBoxLayout()
+        self.title_container.addWidget(self.title)
+        # self.title_container.addWidget(self.grammar_title)
+        self.title_container.setAlignment(Qt.AlignmentFlag.AlignCenter)
 
         self.select_grammar_field = SelectGrammarField(self.level, self.user, self, self.db, self.grammars)
         self.select_grammar_field.setMaximumWidth(400)
@@ -281,22 +301,16 @@ class LessonPage(QWidget):
         ## Contains the grammar image and arrows for changing current grammar
         self.grammar_image_container = QHBoxLayout()
 
-        # self.left_arrow = QLabel()
-        
         pixmap = QPixmap(r'assets//images//arrow_left.png')
         self.left_arrow = ArrowButton(pixmap, 'left')
-        # self.left_arrow.setPixmap(pixmap)
-        # self.right_arrow = QLabel()
         pixmap = QPixmap(r'assets//images//arrow_right.png')
         self.right_arrow = ArrowButton(pixmap, 'right')
-        # self.right_arrow.setPixmap(pixmap)
-        
+
         self.grammar_image_container.addWidget(self.left_arrow)
         self.grammar_image_container.addWidget(self.grammar_image)
         self.grammar_image_container.addWidget(self.right_arrow)
 
         self.grammar_image_container.setAlignment(Qt.AlignmentFlag.AlignCenter)
-
         self.grammar_info_container.addLayout(self.grammar_image_container)
 
         self.examples_container = QVBoxLayout()
@@ -326,7 +340,6 @@ class LessonPage(QWidget):
         self.examples_container.addLayout(self.examples_btn_container)
         self.examples_container.addWidget(self.examples)
 
-        
         self.grammar_info_container.addLayout(self.examples_container)
 
         self.lesson_container.addLayout(self.grammar_info_container)
@@ -338,8 +351,8 @@ class LessonPage(QWidget):
         self.outer_container.addLayout(self.title_container)
         self.outer_container.addLayout(self.lesson_container)
 
-        with open(styles, 'r') as f:
-            self.setStyleSheet(f.read())
+        # with open(styles, 'r') as f:
+        #     self.setStyleSheet(f.read())
         
         self.setLayout(self.outer_container)
 
@@ -350,6 +363,7 @@ class LessonPage(QWidget):
             shutil.copyfileobj(response.raw, out_file)
         del response
         pixmap = QPixmap(r'img.png')
+        # pixmap = pixmap.scaledToHeight(pixmap.height()*0.9)
 
         examples_info = self.db.get_examples(self.grammars['id'].iloc[self.selected])
         print(self.grammars['id'].iloc[self.selected])

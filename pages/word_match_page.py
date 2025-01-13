@@ -79,10 +79,12 @@ class PlayArea(QWidget):
 
         self.score_tracker = ScoreTracker(parent=self)
         self.score_label = QLabel(f'{self.score_tracker.getScore()}')
-        self.setFontSize(self.score_label, 24)
+        self.score_label.setObjectName("scoreLabel")
+        # self.setFontSize(self.score_label, 24)
 
         self.score_title = QLabel('Score:')
-        self.setFontSize(self.score_title, 24)
+        self.score_title.setObjectName("scoreTitle")
+        # self.setFontSize(self.score_title, 24)
 
         self.score_container = QHBoxLayout()
         self.score_container.setContentsMargins(10,0,0,0)
@@ -297,8 +299,8 @@ class WordButton(QWidget):
             # }"""
         self.button.setStyleSheet(self.unselected_style)
         
-        with open(styles, "r") as f:
-            self.setStyleSheet(f.read())
+        # with open(styles, "r") as f:
+        #     self.setStyleSheet(f.read())
 
         self.button.setLayout(self.button_layout)
         self.button.setCursor(QCursor(QtCore.Qt.CursorShape.PointingHandCursor))
@@ -410,10 +412,10 @@ class WordMatchPage(QWidget):
         self.toggle_hg_button = QPushButton('Hide hiragana')
         self.toggle_hg_button.clicked.connect(self.toggleHg)
         self.toggle_hg_button.setCursor(QCursor(QtCore.Qt.CursorShape.PointingHandCursor))
-        self.toggle_hg_button.setMinimumWidth(150)
-        self.toggle_hg_button.setMaximumHeight(40)
-        self.toggle_hg_button.setProperty("class", "button")
-        self.setFontSize(self.toggle_hg_button, 14)
+        # self.toggle_hg_button.setMinimumWidth(150)
+        # self.toggle_hg_button.setMaximumHeight(40)
+        self.toggle_hg_button.setObjectName("toggleHiraganaButton")
+        # self.setFontSize(self.toggle_hg_button, 14)
 
         self.meta_buttons_container.addWidget(self.toggle_hg_button)
 
@@ -423,6 +425,7 @@ class WordMatchPage(QWidget):
         # self.setFontSize(self.title, 24)
         # self.title.setStyleSheet(tools.getPageTitleStyling(self.level))
         self.title = tools.getPageTitle(self.level, "Word Match")
+        self.title.setObjectName("pageTitle"+level)
        
         self.title_bar_layout.addStretch(1)
         self.title_bar_layout.addWidget(self.title)
@@ -446,8 +449,8 @@ class WordMatchPage(QWidget):
         # self.select_button.clicked.connect(self.selectWords)
         # self.outer_container.addWidget(self.select_button)
 
-        with open(styles, "r") as f:
-            self.setStyleSheet(f.read())
+        # with open(styles, "r") as f:
+        #     self.setStyleSheet(f.read())
 
         self.setLayout(self.outer_container)
 

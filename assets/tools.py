@@ -27,8 +27,8 @@ class Tools:
     
     def getPageTitle(self, level, text):
         title = QLabel(f'{level.upper()} {text}')
-        self.setFontSize(title, 24)
-        title.setStyleSheet(self.getPageTitleStyling(level))
+        # self.setFontSize(title, 24)
+        # title.setStyleSheet(self.getPageTitleStyling(level))
         return title
 
 

@@ -22,11 +22,13 @@ class ModeSelectButton(QWidget):
         self.id = id
 
         self.button = QPushButton()
+        self.button.setObjectName("modeSelectButton")
 
         self.button_layout = QHBoxLayout()
         self.button_layout.setAlignment(Qt.AlignmentFlag.AlignRight)
         self.button_label = QLabel(buttons[self.id]['title'])
-        self.setFontSize(self.button_label, 22)
+        self.button_label.setObjectName("modeSelectButtonLabel")
+        # self.setFontSize(self.button_label, 22)
         self.button_layout.addStretch(1)
         self.button_layout.addWidget(self.button_label)
         self.button_layout.addStretch(1)
@@ -38,8 +40,8 @@ class ModeSelectButton(QWidget):
         self.button_layout.addWidget(self.button_icon)
         self.button.setLayout(self.button_layout)
 
-        self.button.setProperty("class", "levelButton")
-        self.button.setProperty("id", str(self.id))
+        # self.button.setProperty("class", "levelButton")
+        # self.button.setProperty("class", "")
         self.button.setCursor(QCursor(QtCore.Qt.CursorShape.PointingHandCursor))
         self.button.clicked.connect(self.buttonClicked)
 
@@ -48,8 +50,8 @@ class ModeSelectButton(QWidget):
         self.layout.addWidget(self.button)
         self.setLayout(self.layout)
 
-        with open(styles, 'r') as f:
-            self.setStyleSheet(f.read())
+        # with open(styles, 'r') as f:
+        #     self.setStyleSheet(f.read())
 
     def buttonClicked(self):
         self.parent().buttonClicked(self.id)
@@ -70,29 +72,16 @@ class LevelPage(QWidget):
         self.buttons = []
         self.progress_information = {"grammar": 0, "words": 0, "kanji": 0}
         self.total_information = {"grammar" : 0, "words": 0, "kanji": 0}
-        print(self.level)
 
         self.db = Database()
         self.initProgressInformation()
-        
-
-        print(self.colors.get_level_color(self.level))
 
         self.outerContainer = QVBoxLayout()
 
         labelLayout = QHBoxLayout()
         labelLayout.setAlignment(Qt.AlignmentFlag.AlignCenter)
         label1 = QLabel(self.level)
-        self.setFontSize(label1, 60)
-        label1.setStyleSheet(f"""
-        color: #{self.colors.get_level_color(self.level)};
-        font-family: Titillium;
-       
-        width: 300px;
-        height: 100px;
-
-        """)
-
+        label1.setObjectName("levelPageTitle"+self.level)
         labelLayout.addWidget(label1)
 
         ## ------------------------- Progress bars
@@ -109,9 +98,9 @@ class LevelPage(QWidget):
         self.wordsProgressBar.setTextVisible(False)
 
         self.wordsLabel = QLabel("Words learnt", self)
-        self.setFontSize(self.wordsLabel, 14)
+        self.wordsLabel.setObjectName("progressBarText")
         self.wordsLearnCounter = QLabel(f'{self.progress_information["words"]}/{self.total_information["words"]}')
-        self.setFontSize(self.wordsLearnCounter, 14)
+        self.wordsLearnCounter.setObjectName("progressBarText")
 
         self.wordsProgressBarSubContainer = QHBoxLayout()
 
@@ -135,9 +124,9 @@ class LevelPage(QWidget):
         self.kanjiProgressBar.setTextVisible(False)
 
         self.kanjiLabel = QLabel("Kanji learnt", self)
-        self.setFontSize(self.kanjiLabel, 14)
+        self.kanjiLabel.setObjectName("progressBarText")
         self.kanjiLearnCounter = QLabel(f'{self.progress_information["kanji"]}/{self.total_information["kanji"]}')
-        self.setFontSize(self.kanjiLearnCounter, 14)
+        self.kanjiLearnCounter.setObjectName("progressBarText")
 
         self.kanjiProgressBarSubContainer = QHBoxLayout()
 
@@ -161,9 +150,9 @@ class LevelPage(QWidget):
         self.grammarProgressBar.setTextVisible(False)
 
         self.grammarLabel = QLabel("Grammar learnt", self)
-        self.setFontSize(self.grammarLabel, 14)
+        self.grammarLabel.setObjectName("progressBarText")
         self.grammarLearnCounter = QLabel(f'{self.progress_information["grammar"]}/{self.total_information["grammar"]}')
-        self.setFontSize(self.grammarLearnCounter, 14)
+        self.grammarLearnCounter.setObjectName("progressBarText")
 
         self.grammarProgressBarSubContainer = QHBoxLayout()
 
@@ -209,8 +198,8 @@ class LevelPage(QWidget):
 
         self.outerContainer.setAlignment(Qt.AlignmentFlag.AlignHCenter)
 
-        with open(styles, "r") as f:
-            self.setStyleSheet(f.read())
+        # with open(styles, "r") as f:
+        #     self.setStyleSheet(f.read())
 
         dudContainer = QHBoxLayout()
         dudContainer.setContentsMargins(90,50,90,50)

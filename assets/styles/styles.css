@@ -1,9 +1,20 @@
+QMainWindow {
+    /* font-size: 50px; */
+    font-family: Impact;
+}
+
+QWidget {
+    /* font-family:Impact; */
+    font-size: 18px;
+}
+
 QProgressBar {
     border: 2px solid grey;
     border-radius: 5px;
     text-align: center;
     font-family: Titillium;
     min-width: 300px;
+    min-height: 20px;
 }
 
 QProgressBar::chunk {
@@ -21,22 +32,273 @@ QPushButton:hover {
 
 } */
 
-.button {
+/* .button {
     background-color: white;
 }
 
 .button:hover {
     background-color: #CCF4FF;
+} */
+
+QLabel#applicationTitle {
+    font-size: 48px;
 }
 
-.levelButton {
-    min-height: 50px;
-    font-size: 22px;
-    min-width: 425px;
+QLabel#applicationSubTitle {
+    font-size: 30px;
 }
+
+QWidget#levelButtonsContainerDummy {
+    min-width: 825px;
+    max-width: 900px;
+    max-height: 170px;
+    min-height: 170px;
+    background-color: #eeeeee;
+}
+
+QWidget#selectGrammarWidget {
+    background-color: #eeeeee;
+    border-radius: 3px;
+}
+
+QPushButton#randomiseButton {
+    max-width: 110px;
+    min-width: 110px;
+    min-height: 24px;
+    font-size: 14px;
+}
+
+QLineEdit#selectGrammarSearchBar {
+    min-height: 24px;
+}
+
+QLabel#progressBarText {
+    font-size: 20px;
+}
+
+QLabel#grammarTitle {
+    font-size: 28px;
+    max-width: 800px;
+}
+
+QLabel#optionsLabel {
+    font-size: 20px;
+}
+
+QSpinBox#timeSelectSpinBox {
+    background: #e8e8e5;
+    font-size: 14px;
+}
+
+QRadioButton#kanjiSpellOption {
+    font-size: 14px;
+}
+
+QCheckBox#kanjiSpellOption {
+    font-size: 14px;
+}
+
+QPushButton#changeTimerButton {
+    max-width: 40px;
+    min-width: 40px;
+    font-size: 14px;
+}
+
+QLabel#kanjiSpellKanjiLabel {
+    background-color: rgba(0,0,0,0);
+    font-size: 50px;
+}
+
+QLabel#kanjiSpellEnglishLabel {
+    min-height: 100px;
+    background-color: rgba(0,0,0,0);
+    font-size: 20px;
+}
+
+QLabel#kanjiSpellAnswerLabel {
+    background-color: rgba(0,0,0,0);
+    font-size: 32px;
+}
+
+QLineEdit#kanjiSpellAnswerInput {
+    max-width: 250px;
+    min-width: 200px;
+    min-height: 60px;
+    background-color: rgba(247, 247, 247, 1);
+    font-size: 20px;
+}
+
+QPushButton#kanjiSpellEnterButton {
+    min-height: 60px;
+    min-width: 80px;
+    max-width: 100px;
+    background-color: rgba(0,0,0,0);
+    font-size: 14px;
+}
+
+QLabel#kanjiSpellGameplayTitle {
+    font-size: 16px;
+    background-color: rgba(0,0,0,0);
+}
+
+QLabel#kanjiSpellGameplayLabel {
+    font-size: 12px;
+    background-color: rgba(0,0,0,0);
+}
+
+QWidget#dummyBackgroundWidget {
+    background-color: #eeeeee;
+    border-radius: 3px;
+}
+
+QPushButton#selectAllButton {
+    font-size: 14px;
+    max-width: 100px;
+    min-width: 100px;
+}
+
+QPushButton#startButton {
+    font-size: 18px;
+    min-height: 50px;
+    min-width: 100px;
+}
+
+QLabel#selectWordFieldTitle {
+    font-size: 20px;
+}
+
+QLabel#selectWordFieldEn {
+    font-size: 14px;
+}
+
+QLabel#selectWordFieldJp, QLabel#selected {
+    font-size: 14px;
+}
+
+QLabel#selected {
+    color: rgb(7, 174, 7);
+}
+
+QPushButton#modeSelectButton {
+    min-width: 400px;
+    min-height: 60px;
+}
+
+QPushButton#toggleHiraganaButton {
+    max-width: 150px;
+    min-width: 100px;
+    min-height: 30px;
+    max-height: 40px;
+    font-size: 14px;
+}
+
+QLabel#pageTitleN1, QLabel#pageTitleN2, QLabel#pageTitleN3, QLabel#pageTitleN4, QLabel#pageTitleN5 {
+    font-size: 28px;
+}
+
+QLabel#pageTitleN1 {
+    color: N1color
+}
+
+QLabel#pageTitleN2 {
+    color: N2color
+}
+
+QLabel#pageTitleN3 {
+    color: N3color
+}
+
+QLabel#pageTitleN4 {
+    color: N4color
+}
+
+QLabel#pageTitleN5 {
+    color: N5color
+}
+
+QLabel#scoreLabel {
+    font-size: 24px;
+}
+
+QLabel#scoreTitle {
+    font-size: 24px;
+}
+
+QLabel#modeSelectButtonLabel {
+    font-size: 26px;
+}
+
+QLabel#levelPageTitleN1, QLabel#levelPageTitleN2, QLabel#levelPageTitleN3, QLabel#levelPageTitleN4, QLabel#levelPageTitleN5 {
+    /* font-family: Titillium; */
+    width: 300px;
+    height: 80px;
+    font-size: 80px;
+}
+
+QLabel#levelPageTitleN1 {
+    color: N1color;
+}
+
+QLabel#levelPageTitleN2 {
+    color: N2color;
+}
+
+QLabel#levelPageTitleN3 {
+    color: N3color;
+}
+
+QLabel#levelPageTitleN4 {
+    color: N4color;
+}
+
+QLabel#levelPageTitleN5 {
+    color: N5color;
+}
+
+
+QPushButton#levelButtonN1, QPushButton#levelButtonN2, QPushButton#levelButtonN3, QPushButton#levelButtonN4, QPushButton#levelButtonN5 {
+    /* min-height: 50px;
+    font-size: 22px;
+    min-width: 425px; */
+    min-width: 150px;
+    min-height: 150px;
+    font-size: 30px;
+    /* margin: 5px; */
+    border-radius: 3px;
+}
+
+QPushButton#levelButtonN1 {
+    background-color: N1color;
+}
+
+QPushButton#levelButtonN2 {
+    background-color: N2color;
+}
+
+QPushButton#levelButtonN3 {
+    background-color: N3color;
+}
+
+QPushButton#levelButtonN4 {
+    background-color: N4color;
+}
+
+QPushButton#levelButtonN5 {
+    background-color: N5color;
+}
+
+/* .levelButton {
+    background-color: var(--color);
+    color: #000000;
+    font-family: Titillium;
+    font-size: 30px;
+    margin-right: 5px;
+    margin-left: 5px; */
+/* } */
 
 .levelButton:hover {
-    background-color: #CCF4FF;
+    /* background-color: #CCF4FF; */
+    background-color: blue;
 }
 
 .buttonLayout {

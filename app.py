@@ -14,16 +14,29 @@ from pages.kanji_spell_page import KanjiSpellPage
 
 # Only needed for access to command line arguments
 import sys
+import ctypes
+import os
 
 # You need one (and only one) QApplication instance per application.
 # Pass in sys.argv to allow command line arguments for your app.
 # If you know you won't use command line arguments QApplication([]) works too.
 app = QApplication(sys.argv)
 
+
+
+print(f"Operating system is: {os.name}")
+
+if os.name == "nt":
+    appID = 'microsoft.windows.nihongomax.v1'
+    ctypes.windll.shell32.SetCurrentProcessExplicitAppUserModelID(appID)
+
+
 class MainWindow(QMainWindow):
     def __init__(self):
         super().__init__()
         self.homePage = Home()
+        self.homePage.setObjectName("home")
+        self.setWindowIcon(QIcon(r'assets\images\1377200-m-1762661817.gif'))
 
         self.level_chosen = None
         self.levelMetaData = LevelMetaData()
@@ -102,9 +115,25 @@ class MainWindow(QMainWindow):
         kanjiSpellPage = KanjiSpellPage(self.level_chosen)
         self.setCentralWidget(kanjiSpellPage)
 
+
+
 window = MainWindow()
 window.show()
 
+styles = "assets\styles\styles.css"
+colors = {
+"N1color": '#ade9ff', 
+"N2color": '#adb0ff',
+"N3color": '#ffadf1', 
+"N4color": '#ffcbad', 
+"N5color": '#62bb96' 
+}
+
+with open(styles, 'r') as f:
+    styling = f.read()
+    for i in list(colors.keys()):
+        styling = styling.replace(i, colors[i])
+    window.setStyleSheet(styling)
 
 # Start the event loop
 app.exec()
