@@ -87,6 +87,27 @@ class Database:
             FOREIGN KEY (level_id) REFERENCES levels(level_id)
         ) WITHOUT ROWID;"""
 
+        texts_table = """ CREATE TABLE IF NOT EXISTS texts (
+            text_id INTEGER NOT NULL,
+            title VARCHAR(150) NOT NULL,
+            author VARCHAR(50),
+            PRIMARY KEY (text_id)
+        ) WITHOUT ROWID;"""
+
+        text_types_table = """ CREATE TABLE IF NOT EXISTS texts_types (
+            type_id INTEGER NOT NULL,
+            type VARCHAR(50) NOT NULL,
+            PRIMARY KEY (type_id)
+        ) WITHOUT ROWID;"""
+
+        text_types_link_table = """ CREATE TABLE IF NOT EXISTS texts_types_link (
+            text_id INTEGER NOT NULL,
+            type_id INTEGER NOT NULL,
+            PRIMARY KEY(text_id, type_id),
+            FOREIGN KEY (text_id) REFERENCES texts (text_id),
+            FOREIGN KEY (type_id) REFERENCES texts_types (type_id)
+        ) WITHOUT ROWID;"""
+
         users_table = """ CREATE TABLE IF NOT EXISTS users (
             user_id INTEGER NOT NULL,
             date_joined TEXT NOT NULL,
@@ -125,6 +146,9 @@ class Database:
         self.cursor.execute(grammars_table)
         self.cursor.execute(examples_table)
         self.cursor.execute(kanji_table)
+        self.cursor.execute(texts_table)
+        self.cursor.execute(text_types_table)
+        self.cursor.execute(text_types_link_table)
         self.cursor.execute(users_table)
         self.cursor.execute(user_grammars_table)
         self.cursor.execute(user_words_table)
@@ -186,6 +210,14 @@ class Database:
         self.sqliteConnection.commit()
 
         return self.cursor.lastrowid
+    
+    def insert_text_types(self):
+        query = """ INSERT INTO texts_types(type_id, type) VALUES (1, 'hiragana'), (2, 'katakana'); """
+
+        self.cursor.execute(query)
+        self.sqliteConnection.commit()
+
+        return self.cursor.lastrowid
 
     def get_table_names(self):
         query = """ SELECT 
@@ -236,6 +268,15 @@ class Database:
         result = self.cursor.execute(query).fetchall()
 
         return result[0]
+    
+    def get_max_text_id(self):
+        max_text_id_query = "SELECT text_id FROM texts ORDER BY text_id DESC LIMIT 1;"
+        max_text_id = self.cursor.execute(max_text_id_query).fetchall() # Returns list of tuple
+        print(f'Max text: {max_text_id}')
+        if len(max_text_id) == 0:
+            return 0
+        
+        return max_text_id[0][0]
 
     def get_max_grammar_id(self):
         max_grammar_id_query = "SELECT grammar_id FROM grammars ORDER BY grammar_id DESC LIMIT 1;"
@@ -369,6 +410,56 @@ class Database:
 
                 self.cursor.execute(query, values)
                 # self.sqliteConnection.commit()
+
+        query = "COMMIT;"
+        self.cursor.execute(query)
+        self.sqliteConnection.commit()
+
+    def insert_texts_batch(self, texts):
+        query = "BEGIN TRANSACTION;" # Perform batch insert to avoid half-complete insert in case of failure
+        self.cursor.execute(query)
+        text_id = self.get_max_text_id()
+        new_id = int(text_id)
+
+        for t in range(len(texts)):
+            fields = texts[t].split('#')
+            types = fields[2]
+            if ',' in types:
+                types = types.split(',')
+            else:
+                types = [types]
+
+            type_string = ""
+            for i in types:
+                type_string += "'" + i + "',"
+            type_string = type_string[:len(type_string)-1]
+
+            query = f""" SELECT type_id FROM texts_types WHERE type IN ({type_string}); """
+            result = self.cursor.execute(query).fetchall()
+            if result == []:
+                continue
+            else:
+                # print(result)
+                type_ids = [result[i][0] for i in range(len(result))]
+                new_id += 1
+
+            title = fields[0]
+            author = fields[1]
+
+            texts_types_string = ""
+            for i in type_ids:
+                texts_types_string += f"({new_id}, {i}),"
+            texts_types_string = texts_types_string[:len(texts_types_string)-1]
+
+            print(type_ids)
+            query = f""" INSERT INTO texts_types_link (text_id, type_id) VALUES {texts_types_string}; """
+            print(query)
+            self.cursor.execute(query)
+
+            values = [new_id, title, author]
+            query = f""" INSERT INTO texts (text_id, title, author) VALUES (?,?,?); """
+
+            self.cursor.execute(query, values)
 
         query = "COMMIT;"
         self.cursor.execute(query)
@@ -515,28 +606,15 @@ class Database:
 
 if __name__ == "__main__":
     db = Database()
-    # db.drop_tables()
+
     db.createTables()
-    # db.insert_levels()
-    # db.insert_grammar_batch("assets//grammar//n1.csv", "N1")
-    # db.insert_grammar_batch("assets//grammar//n2.csv", "N2")
-    # db.insert_grammar_batch("assets//grammar//n3.csv", "N3")
+    
     level = 'N1'
     user = 1
-    # grammars_learnt = db.get_num_grammars_at_level_user(level, user)
-    # print(grammars_learnt)
-    # words_learnt = db.get_num_words_at_level_user(level, user)
-    # print(words_learnt)
-    # kanjis_learnt = db.get_num_kanjis_at_level_user(level, user)
-    # print(kanjis_learnt)
-    # words = [x[0] for x in db.get_words_at_level(level)]
-    # print(words)
-    # db.add_user_words(words, user)
-    for i in range(1,6):
-        db.insert_words_batch(rf'assets//words//n{i}.csv', f'N{i}')
-    # db.insert_words_batch(rf'assets//words//n5.csv', f'N5')
-    # if result[0][0] is None:
-    #     word_id = 1
 
-    # print(db.get_words_at_level_user('N3', 1))
+    # db.insert_text_types()
+
+    texts = ['Triumphant Return Festival#Kyoka Izumi#hiragana', 'Test1#Test1#hiragana,katakana']
+    db.insert_texts_batch(texts)
+    
     db.close()
