@@ -12,7 +12,7 @@ from database import Database
 from assets.tools import Tools
 
 styles = "assets\styles\styles.css"
-buttons = {1: {"title": "New lesson", "icon": r"assets\images\new_lesson_icon.jpg", "display": True}, 2: {"title": "Daily review", "icon": r"assets\images\daily_review_icon-removebg-preview.png", "display": True}, 3: {"title": "Translation quiz", "icon": r"assets\images\translation_icon-removebg-preview.png", "display": True}, 4: {"title": "Word match", "icon": r"assets\images\word_match_icon-removebg-preview.png", "display": True}, 5: {"title": "Word fill", "icon": r"assets\images\new_lesson_icon.jpg", "display": False}, 6: {"title": "Kanji spell", "icon": r"assets\images\kanji_spell_icon.png", "display": True}}
+buttons = {1: {"title": "New lesson", "icon": r"assets\images\new_lesson_icon.jpg", "display": True}, 2: {"title": "Daily review", "icon": r"assets\images\daily_review_icon-removebg-preview.png", "display": True}, 3: {"title": "Translation quiz", "icon": r"assets\images\translation_icon-removebg-preview.png", "display": True}, 4: {"title": "Word match", "icon": r"assets\images\word_match_icon-removebg-preview.png", "display": True}, 5: {"title": "Word fill", "icon": r"assets\images\new_lesson_icon.jpg", "display": False}, 6: {"title": "Kanji spell", "icon": r"assets\images\kanji_spell_icon.png", "display": True}, 7: {"title": "Kana race", "icon": r"assets\images\new_lesson_icon.jpg", "display": True}}
 tools = Tools()
 
 class ModeSelectButton(QWidget):
@@ -49,9 +49,6 @@ class ModeSelectButton(QWidget):
         self.layout.setAlignment(Qt.AlignmentFlag.AlignCenter)
         self.layout.addWidget(self.button)
         self.setLayout(self.layout)
-
-        # with open(styles, 'r') as f:
-        #     self.setStyleSheet(f.read())
 
     def buttonClicked(self):
         self.parent().buttonClicked(self.id)
@@ -186,7 +183,8 @@ class LevelPage(QWidget):
             if buttons[idx]['display']:
                 self.buttons.append(ModeSelectButton(idx))
             
-        self.buttonLayout.addWidget(self.buttons[0], 0, 2, 1, 3)
+        self.buttonLayout.addWidget(self.buttons[0], 0, 0, 1, 3)
+        self.buttonLayout.addWidget(self.buttons[5], 0, 4, 1, 3)
         self.buttonLayout.addWidget(self.buttons[1], 2, 0, 1, 3)
         self.buttonLayout.addWidget(self.buttons[2], 2, 4, 1, 3)
         self.buttonLayout.addWidget(self.buttons[3], 4, 0, 1, 3)
@@ -259,6 +257,8 @@ class LevelPage(QWidget):
             pass
         elif id == 6:
             self.parent().displayKanjiSpellPage()
+        elif id == 7:
+            self.parent().displayKanaRacePage()
 
     def updateProgressBars(self):
         self.grammarProgressBar.setValue(self.progress_information["grammar"])

@@ -120,10 +120,10 @@ class PlayArea(QWidget):
         
         # self.populateArea()
 
-        with open(styles, "r") as f:
-            self.setStyleSheet(f.read())
+        # with open(styles, "r") as f:
+        #     self.setStyleSheet(f.read())
 
-        print(self.button_container.itemAtPosition(0,0))
+        # print(self.button_container.itemAtPosition(0,0))
         self.setLayout(self.container)
 
     def startBtnPressed(self):

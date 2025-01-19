@@ -11,6 +11,7 @@ from assets.data import LevelMetaData
 from pages.lesson_page import LessonPage
 from pages.word_match_page import WordMatchPage
 from pages.kanji_spell_page import KanjiSpellPage
+from pages.kana_race_page import KanaRacePage
 
 # Only needed for access to command line arguments
 import sys
@@ -41,7 +42,7 @@ class MainWindow(QMainWindow):
         self.level_chosen = None
         self.levelMetaData = LevelMetaData()
 
-        self.setWindowTitle("NihongoMax")
+        self.setWindowTitle("< Name pending >")
         self.setMinimumSize(QSize(1200,700))
         self.label = QLabel()
 
@@ -114,6 +115,10 @@ class MainWindow(QMainWindow):
     def displayKanjiSpellPage(self):
         kanjiSpellPage = KanjiSpellPage(self.level_chosen)
         self.setCentralWidget(kanjiSpellPage)
+
+    def displayKanaRacePage(self):
+        kanaRacePage = KanaRacePage(self.level_chosen)
+        self.setCentralWidget(kanaRacePage)
 
 
 

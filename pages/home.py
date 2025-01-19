@@ -100,4 +100,7 @@ class Home(QWidget):
     def displayKanjiSpell(self):
         self.parent().displayKanjiSpellPage()
 
+    def displayKanaRacePage(self):
+        self.parent().displayKanaRacePage()
+
 

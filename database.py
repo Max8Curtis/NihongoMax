@@ -601,9 +601,29 @@ class Database:
         # except Exception as e:
             # return None
 
+    def get_text_types(self):
+        try:
+            query = f""" SELECT * FROM texts_types; """
+            df = pd.read_sql_query(query, self.sqliteConnection)
+            return df
+        except Exception as e:
+            return None
 
 
+    def get_texts_all(self):
+        try:
+            query = f""" SELECT t.text_id, t.title, t.author, tt.type_id FROM texts AS t JOIN texts_types_link AS tt ON t.text_id = tt.text_id; """
 
+            df = pd.read_sql_query(query, self.sqliteConnection)
+            type_ids = df.groupby('text_id')
+            df_new = df.iloc[[type_ids.groups[i][0] for i in list(type_ids.groups.keys())]]
+            df_new['type_id'] = list(type_ids.agg({'type_id': lambda x: list(x)})['type_id'])
+            return df_new
+        except Exception as e:
+            return None
+
+
+import itertools #######################################
 if __name__ == "__main__":
     db = Database()
 
@@ -614,7 +634,14 @@ if __name__ == "__main__":
 
     # db.insert_text_types()
 
-    texts = ['Triumphant Return Festival#Kyoka Izumi#hiragana', 'Test1#Test1#hiragana,katakana']
-    db.insert_texts_batch(texts)
+    # texts = ['Test1#Test1#hiragana,katakana']
+    # db.insert_texts_batch(texts)
+    types = db.get_text_types()
+    print(types)
+    stuff = [(types['type_id'].iloc[x], types['type'].iloc[x]) for x in range(types.shape[0])]
+    # stuff = [1, 2, 3]
+    for L in range(len(stuff) + 1):
+        for subset in itertools.combinations(stuff, L):
+            print(subset)
     
     db.close()
