@@ -37,19 +37,34 @@ class MyQLineEdit(QLineEdit):
         super(QLineEdit, self).keyPressEvent(event)
         self.keyPressed.emit(event.key())
 
+class QCustomTextListWidget(QCustomListWidget):
+    def __init__(self, idx, jp, en, selected, parent = None):
+        super(QCustomListWidget, self).__init__(parent)
+
+    def clicked(self):
+        pass
+
+
 class SelectTextField(QWidget):
-    def __init__(self, types):
+    def __init__(self, db):
         super().__init__()
-        self.types = types
+        self.db = db
+
+        self.types = self.db.get_text_types()
+        # self.types = types
+        self.texts = self.db.get_texts_all()
+        print(self.texts)
+        self.selected_type_idx = 0
 
         self.type_labels = self.getTypesCombinations()
+        print(self.type_labels)
 
         self.outer_container = QVBoxLayout()
 
         self.widget_layout = QVBoxLayout()
 
-        widget = QWidget()
-        widget.setObjectName("selectTextWidget")
+        self.widget = QWidget()
+        self.widget.setObjectName("selectTextWidget")
 
         self.title = QLabel('Text List')
         self.title.setObjectName("selectWordFieldTitle")
@@ -60,10 +75,12 @@ class SelectTextField(QWidget):
 
         self.search_bar = QLineEdit()
         self.search_bar.setObjectName("selectTextSearchBar")
+        self.search_bar.textChanged.connect(self.textSearchUpdated)
 
         self.type_combobox = QComboBox()
         self.type_combobox.setObjectName("selectTextTypeComboBox")
         self.type_combobox.addItems(self.type_labels['label'])
+        self.type_combobox.currentIndexChanged.connect(self.updateTypeSelection)
 
         self.random_btn = QPushButton('Randomise')
         # self.random_btn.setMaximumWidth(100)
@@ -77,11 +94,48 @@ class SelectTextField(QWidget):
 
         self.widget_layout.addLayout(self.filter_buttons_layout)
 
+        self.list_widget = QListWidget()
+        self.list_items = []
+        self.filterListItems()
+        self.populateList()
+
+        self.widget_layout.addWidget(self.list_widget)
+
+        self.widget.setLayout(self.widget_layout)
+        self.outer_container.addWidget(self.widget)
+
+        self.setLayout(self.outer_container)
+
         # self.outer_container.addWidget(self.random_btn)
 
-        self.list_widget = QListWidget()
-        # self.list_items = [QCustomListWidget(i+1, grammars['jp'].iloc[i], grammars['en'].iloc[i], grammars['completed'].iloc[i]) for i in range(self.grammars.shape[0])]
-        self.list_items = []
+    def textSearchUpdated(self, text):
+        if text == "":
+            self.filterListItems()
+        else:
+            self.filterListItems(text)
+            print(text)
+
+        self.populateList()     
+
+    def updateTypeSelection(self, index):
+        self.selected_type_idx = index
+        self.filterListItems()
+        self.populateList(index)
+
+    def filterListItems(self, filter_ex = None):
+        ## TODO:
+        #  Add sophisticated searching and order list items by similarity to the search text
+        ##
+        if filter_ex is None:
+            self.list_items = [QCustomListWidget(idx=self.texts['id'].iloc[i], jp=self.texts['title'].iloc[i], en=f"{self.texts['author'].iloc[i]} - Length: {self.texts['length'].iloc[i]}", selected=False) for i in range(self.texts.shape[0]) if self.texts['type_id'].iloc[i] == self.type_labels['id'][self.selected_type_idx]]
+        else:
+            filter_ex = filter_ex.lower()
+            self.list_items = [QCustomListWidget(idx=self.texts['id'].iloc[i], jp=self.texts['title'].iloc[i], en=f"{self.texts['author'].iloc[i]} - Length: {self.texts['length'].iloc[i]}", selected=False) for i in range(self.texts.shape[0]) if self.texts['type_id'].iloc[i] == self.type_labels['id'][self.selected_type_idx] and (filter_ex in self.texts['title'].iloc[i].lower() or filter_ex in self.texts['author'].iloc[i].lower())]
+
+
+    def populateList(self):
+        self.list_widget.clear()
+        
         for item in self.list_items:
             my_list_widget = QListWidgetItem(self.list_widget)
             # Set size hint
@@ -91,16 +145,6 @@ class SelectTextField(QWidget):
             self.list_widget.setItemWidget(my_list_widget, item)
         # self.list_widget.addItems([f"{grammars['jp'].iloc[i]} | {grammars['en'].iloc[i]}" for i in range(grammars.shape[0])])
         self.list_widget.currentRowChanged.connect(self.rowChanged)
-
-        self.widget_layout.addWidget(self.list_widget)
-        # self.widget_layout.setProperty("class", "select")
-
-        # with open(styles, "r") as f:
-        #     self.setStyleSheet(f.read())
-        widget.setLayout(self.widget_layout)
-        self.outer_container.addWidget(widget)
-
-        self.setLayout(self.outer_container)
 
     def getTypesCombinations(self):
         type_tuples = [(self.types['type_id'].iloc[x], self.types['type'].iloc[x]) for x in range(self.types.shape[0])]
@@ -122,15 +166,14 @@ class SelectTextField(QWidget):
         pass
 
 class PlayArea(QWidget):
-    def __init__(self, level, texts, types):
+    def __init__(self, level, db):
         super().__init__()
         self.level = level
-        self.texts = texts
-        self.types = types
+        self.db = db
 
         self.container = QHBoxLayout()
 
-        self.select_text_field = SelectTextField(types)
+        self.select_text_field = SelectTextField(self.db)
         
         self.container.addWidget(self.select_text_field)
 
@@ -157,7 +200,7 @@ class KanaRacePage(QWidget):
 
         self.container.addLayout(self.title_bar_layout)
 
-        self.play_area = PlayArea(self.level, self.texts, self.text_types)
+        self.play_area = PlayArea(self.level, self.db)
         self.container.addWidget(self.play_area)
 
         self.setLayout(self.container)

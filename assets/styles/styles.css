@@ -68,7 +68,7 @@ QPushButton#randomiseButton {
     font-size: 14px;
 }
 
-QLineEdit#selectGrammarSearchBar {
+QLineEdit#selectGrammarSearchBar, selectTextSearchBar {
     min-height: 24px;
 }
 
@@ -161,6 +161,13 @@ QPushButton#startButton {
     font-size: 18px;
     min-height: 50px;
     min-width: 100px;
+}
+
+QComboBox#selectTextTypeComboBox {
+    font-size: 14px;
+    /* max-width: 110px; */
+    min-width: 110px;
+    min-height: 24px;
 }
 
 QLabel#selectWordFieldTitle {
