@@ -253,15 +253,17 @@ class WordButton(QWidget):
         self.en = en
 
         self.button_layout = QVBoxLayout()
-        self.button_layout.setSpacing(-10)
+        # self.button_layout.setSpacing(-10)
         self.button_layout.setAlignment(Qt.AlignmentFlag.AlignCenter)
 
         self.button_text = ""
         self.button_label = QLabel(self.button_text)
         self.button_label.setWordWrap(True)
+        self.button_label.setObjectName("wordButtonLabel")
         self.button_layout.addWidget(self.button_label)
 
         self.button = QPushButton()
+        self.button.setObjectName("wordButtonUnselected")
         self.unselected_style = """
             QPushButton {
                 border-radius: 5px;
@@ -270,6 +272,7 @@ class WordButton(QWidget):
                 min-height: 120px;
                 font-size: 20px;
                 font-family: Verdana;
+                padding: 0px;
             }
 
             QPushButton:hover {
@@ -288,6 +291,7 @@ class WordButton(QWidget):
                 min-height: 120px;
                 font-size: 20px;
                 font-family: Verdana;
+                padding: 0px;
             }
 
             QPushButton:hover {
@@ -297,7 +301,7 @@ class WordButton(QWidget):
             # QPushButton:pressed {
             #     background-color: #94d7f7;                      
             # }"""
-        self.button.setStyleSheet(self.unselected_style)
+        # self.button.setStyleSheet(self.unselected_style)
         
         # with open(styles, "r") as f:
         #     self.setStyleSheet(f.read())
@@ -331,10 +335,20 @@ class WordButton(QWidget):
         self.setBtnText()
     
     def setSelectedStyle(self):
-        self.button.setStyleSheet(self.selected_style)
+        # self.button.setStyleSheet(self.selected_style)
+        self.button.setObjectName("wordButtonSelected")
+        style = self.button.style()
+        style.unpolish(self.button)
+        style.polish(self.button)
+        self.button.update()
 
     def setUnselectedStyle(self):
-        self.button.setStyleSheet(self.unselected_style)
+        # self.button.setStyleSheet(self.unselected_style)
+        self.button.setObjectName("wordButtonUnselected")
+        style = self.button.style()
+        style.unpolish(self.button)
+        style.polish(self.button)
+        self.button.update()
 
     def setJp(self, ka, hg):
         self.ka = ka
@@ -381,8 +395,6 @@ class WordButton(QWidget):
 
     def pressed(self):
         self.parent().btnPressed(self.type, self.id)
-
-
 
 class WordMatchPage(QWidget):
     def __init__(self, level):

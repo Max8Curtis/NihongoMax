@@ -186,16 +186,12 @@ class PlayArea(QWidget):
         self.options_grid.setRowStretch(0,1)
         self.options_grid.setRowStretch(4,1)
 
-        
-
         self.start_button = StartButton()
         # self.options_grid.addWidget(self.start_button, 2, 5)
 
         self.options_container.addLayout(self.options_grid)
 
         self.options_container.addStretch(2)
-
-
 
         self.options_play_area_container = QVBoxLayout()
 
@@ -469,32 +465,39 @@ class PlayArea(QWidget):
             print(self.current)
             is_correct = self.checkAnswer(self.queue['hg'].iloc[self.current])
             if is_correct:
-                print("Correct!")
-                # self.answer_label.setText("Correct!")
-                self.answer_input.setStyleSheet("""
-                    min-height: 60px;
-                    min-width: 200px;
-                    background-color: #02ce79;
-                    font-family: 'Arial', sans-serif;
-                    color: white;
-                """)
+                self.answer_input.setObjectName("kanjiSpellAnswerInputCorrect")
+
+                # print("Correct!")
+                # # self.answer_label.setText("Correct!")
+                # self.answer_input.setStyleSheet("""
+                #     min-height: 60px;
+                #     min-width: 200px;
+                #     background-color: #02ce79;
+                #     font-family: 'Arial', sans-serif;
+                #     color: white;
+                # """)
             else:
-                print("Incorrect!")
-                # self.answer_label.setText("Not quite!")
-                self.answer_input.setStyleSheet("""
-                    min-height: 60px;
-                    min-width: 200px;
-                    background-color: #e74545;
-                    font-family: 'Arial', sans-serif;
-                    color: white;
-                """)
-                self.answer_label
-                self.incorrect_words.append(self.current)
+                self.answer_input.setObjectName("kanjiSpellAnswerInputIncorrect")
+                # print("Incorrect!")
+                # # self.answer_label.setText("Not quite!")
+                # self.answer_input.setStyleSheet("""
+                #     min-height: 60px;
+                #     min-width: 200px;
+                #     background-color: #e74545;
+                #     font-family: 'Arial', sans-serif;
+                #     color: white;
+                # """)
+                # self.answer_label
+                # self.incorrect_words.append(self.current)
+            style = self.answer_input.style()
+            style.unpolish(self.answer_input)
+            style.polish(self.answer_input)
+            self.answer_input.update()
             
-            self.setFontSize(self.answer_label, self.answer_fontsize)
+            # self.setFontSize(self.answer_label, self.answer_fontsize)
             self.answer_timer = QtCore.QTimer(self)
             # self.answer_timer.setInterval(750)
-            self.answer_timer.timeout.connect(self.resetAnswerLabel)
+            self.answer_timer.timeout.connect(self.resetAnswerInput)
             self.answer_timer.start(750)
             self.answer_input.setText(None)
             self.current_text_hg = ""
@@ -543,7 +546,13 @@ class PlayArea(QWidget):
         self.timer_label
 
     def resetAnswerInput(self):
-        self.answer_input.setText(None)
+        # self.answer_input.setText(None)
+        self.answer_input.setObjectName("kanjiSpellAnswerInput")
+
+        style = self.answer_input.style()
+        style.unpolish(self.answer_input)
+        style.polish(self.answer_input)
+        self.answer_input.update()
 
     def resetAnswerLabel(self):
         self.answer_label.setText(None)
