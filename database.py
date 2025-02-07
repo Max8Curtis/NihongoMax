@@ -24,185 +24,6 @@ class Database:
     def close(self):
         self.cursor.close()
 
-    def createTables(self):
-        levels_table = """ CREATE TABLE IF NOT EXISTS levels (
-            level_id INTEGER NOT NULL,
-            level VARCHAR(3) NOT NULL,
-            PRIMARY KEY(level_id)
-        ) WITHOUT ROWID;""" 
-
-        words_table = """ CREATE TABLE IF NOT EXISTS words (
-            word_id INTEGER NOT NULL,
-            word_ka CHAR(25) NOT NULL,
-            word_hg CHAR(25) NOT NULL,
-            word_en CHAR(100) NOT NULL,
-            level_id INTEGER NOT NULL,
-            PRIMARY KEY (word_id),
-            FOREIGN KEY (level_id) REFERENCES levels(level_id)
-            ) WITHOUT ROWID; """
-        
-        types_table = """ CREATE TABLE IF NOT EXISTS types (
-            type_id INTEGER NOT NULL,
-            type CHAR(25) NOT NULL,
-            PRIMARY KEY (type_id)
-        ) WITHOUT ROWID;"""
-
-        words_types_table = """ CREATE TABLE IF NOT EXISTS word_types (
-            word_id INTEGER NOT NULL,
-            type_id INTEGER NOT NULL,
-            FOREIGN KEY (word_id) REFERENCES words(word_id),
-            FOREIGN KEY (type_id) REFERENCES types(type_id),
-            PRIMARY KEY(word_id, type_id)
-            ) WITHOUT ROWID;"""
-
-        grammars_table = """ CREATE TABLE IF NOT EXISTS grammars (
-            grammar_id INTEGER NOT NULL,
-            grammar_en VARCHAR(50) NOT NULL,
-            grammar_jp VARCHAR(50) NOT NULL,
-            image_url VARCHAR(500) NOT NULL,
-            level_id INTEGER NOT NULL,
-            PRIMARY KEY (grammar_id),
-            FOREIGN KEY (level_id) REFERENCES levels(level_id)
-        ) WITHOUT ROWID;"""
-
-        examples_table = """ CREATE TABLE IF NOT EXISTS examples (
-            example_id INTEGER NOT NULL,
-            example_jp VARCHAR(150) NOT NULL,
-            example_hg VARCHAR(150) NOT NULL,
-            example_en VARCHAR(150) NOT NULL,
-            grammar_id INTEGER NOT NULL,
-            PRIMARY KEY(example_id),
-            FOREIGN KEY (grammar_id) REFERENCES grammar(grammar_id)
-        ) WITHOUT ROWID;"""
-
-        kanji_table = """ CREATE TABLE IF NOT EXISTS kanjis (
-            kanji_id INTEGER NOT NULL,
-            kanji VARCHAR(10) NOT NULL,
-            onyomi VARCHAR(10) NOT NULL,
-            kunyomi VARCHAR(10),
-            meaning VARCHAR(150) NOT NULL,
-            image_url VARCHAR(500) NOT NULL,
-            level_id INTEGER NOT NULL,
-            PRIMARY KEY (kanji_id),
-            FOREIGN KEY (level_id) REFERENCES levels(level_id)
-        ) WITHOUT ROWID;"""
-
-        texts_table = """ CREATE TABLE IF NOT EXISTS texts (
-            text_id INTEGER NOT NULL,
-            title VARCHAR(150) NOT NULL,
-            author VARCHAR(50),
-            PRIMARY KEY (text_id)
-        ) WITHOUT ROWID;"""
-
-        text_types_table = """ CREATE TABLE IF NOT EXISTS texts_types (
-            type_id INTEGER NOT NULL,
-            type VARCHAR(50) NOT NULL,
-            PRIMARY KEY (type_id)
-        ) WITHOUT ROWID;"""
-
-        text_types_link_table = """ CREATE TABLE IF NOT EXISTS texts_types_link (
-            text_id INTEGER NOT NULL,
-            type_id INTEGER NOT NULL,
-            PRIMARY KEY(text_id, type_id),
-            FOREIGN KEY (text_id) REFERENCES texts (text_id),
-            FOREIGN KEY (type_id) REFERENCES texts_types (type_id)
-        ) WITHOUT ROWID;"""
-
-        users_table = """ CREATE TABLE IF NOT EXISTS users (
-            user_id INTEGER NOT NULL,
-            date_joined TEXT NOT NULL,
-            PRIMARY KEY (user_id)
-        );"""
-
-        user_grammars_table = """ CREATE TABLE IF NOT EXISTS user_grammars (
-            user_id INTEGER NOT NULL,
-            grammar_id INTEGER NOT NULL,
-            PRIMARY KEY (user_id, grammar_id),
-            FOREIGN KEY (user_id) REFERENCES users (user_id),
-            FOREIGN KEY (grammar_id) REFERENCES grammars (grammar_id),
-            UNIQUE(user_id, grammar_id)
-        );"""
-
-        user_words_table = """ CREATE TABLE IF NOT EXISTS user_words (
-            user_id INTEGER NOT NULL,
-            word_id INTEGER NOT NULL,
-            FOREIGN KEY (user_id) REFERENCES users (user_id),
-            FOREIGN KEY (word_id) REFERENCES words (word_id),
-            UNIQUE(user_id, word_id)
-        );"""
-
-        user_kanjis_table = """ CREATE TABLE IF NOT EXISTS user_kanjis (
-            user_id INTEGER NOT NULL,
-            kanji_id INTEGER NOT NULL,
-            FOREIGN KEY (user_id) REFERENCES users (user_id),
-            FOREIGN KEY (kanji_id) REFERENCES kanjis (kanji_id),
-            UNIQUE(user_id, kanji_id)
-        );"""
-
-        self.cursor.execute(levels_table)
-        self.cursor.execute(words_table)
-        self.cursor.execute(types_table)
-        self.cursor.execute(words_types_table)
-        self.cursor.execute(grammars_table)
-        self.cursor.execute(examples_table)
-        self.cursor.execute(kanji_table)
-        self.cursor.execute(texts_table)
-        self.cursor.execute(text_types_table)
-        self.cursor.execute(text_types_link_table)
-        self.cursor.execute(users_table)
-        self.cursor.execute(user_grammars_table)
-        self.cursor.execute(user_words_table)
-        self.cursor.execute(user_kanjis_table)
-
-
-        result = self.cursor.fetchall()
-        print(result)
-        
-    def drop_tables(self):
-        query = "DROP TABLE IF EXISTS examples"
-        self.cursor.execute(query)
-        self.sqliteConnection.commit()
-
-        query = "DROP TABLE IF EXISTS grammars"
-        self.cursor.execute(query)
-        self.sqliteConnection.commit()
-
-        query = "DROP TABLE IF EXISTS kanjis"
-        self.cursor.execute(query)
-        self.sqliteConnection.commit()
-
-        query = "DROP TABLE IF EXISTS word_types"
-        self.cursor.execute(query)
-        self.sqliteConnection.commit()
-
-        query = "DROP TABLE IF EXISTS words"
-        self.cursor.execute(query)
-        self.sqliteConnection.commit()
-
-        query = "DROP TABLE IF EXISTS types"
-        self.cursor.execute(query)
-        self.sqliteConnection.commit()
-
-        query = "DROP TABLE IF EXISTS levels"
-        self.cursor.execute(query)
-        self.sqliteConnection.commit()
-
-        query = "DROP TABLE IF EXISTS users"
-        self.cursor.execute(query)
-        self.sqliteConnection.commit()
-
-        query = "DROP TABLE IF EXISTS user_grammars"
-        self.cursor.execute(query)
-        self.sqliteConnection.commit()
-
-        query = "DROP TABLE IF EXISTS user_words"
-        self.cursor.execute(query)
-        self.sqliteConnection.commit()
-
-        query = "DROP TABLE IF EXISTS user_kanjis"
-        self.cursor.execute(query)
-        self.sqliteConnection.commit()
-
     def insert_levels(self):
         query = """ INSERT INTO levels(level_id, level) VALUES (1, 'N1'),(2, 'N2'),(3, 'N3'),(4, 'N4'),(5, 'N5');"""
 
@@ -424,6 +245,7 @@ class Database:
         for t in range(len(texts)):
             fields = texts[t].split('#')
             types = fields[2]
+            length = fields[3]
             if ',' in types:
                 types = types.split(',')
             else:
@@ -439,7 +261,6 @@ class Database:
             if result == []:
                 continue
             else:
-                # print(result)
                 type_ids = [result[i][0] for i in range(len(result))]
                 new_id += 1
 
@@ -451,19 +272,46 @@ class Database:
                 texts_types_string += f"({new_id}, {i}),"
             texts_types_string = texts_types_string[:len(texts_types_string)-1]
 
-            print(type_ids)
             query = f""" INSERT INTO texts_types_link (text_id, type_id) VALUES {texts_types_string}; """
-            print(query)
             self.cursor.execute(query)
 
-            values = [new_id, title, author]
-            query = f""" INSERT INTO texts (text_id, title, author) VALUES (?,?,?); """
+            values = [new_id, title, author, length]
+            query = f""" INSERT INTO texts (text_id, title, author, length) VALUES (?,?,?,?); """
 
             self.cursor.execute(query, values)
 
+            # query = f""" SELECT user_id FROM users; """
+
+            # result = self.cursor.execute(query).fetchall()
+        
+            # if not result == []:
+                
+            #     for id in range(len(result)):
+            #         values = [result[id], new_id, None]
+            #         query = f""" INSERT INTO users_texts (user_id, text_id, pb) VALUES (?,?,?); """
+            #         self.cursor.execute(query, values)
+                
         query = "COMMIT;"
         self.cursor.execute(query)
         self.sqliteConnection.commit()
+
+
+    def update_user_text_pb(self, user: int, text:int, pb: int):
+        query = f""" SELECT pb FROM users_texts WHERE user_id = {user} and text_id = {text}; """
+
+        result = self.cursor.execute(query).fetchall()
+        if result == []:
+            values = [user, text, pb]
+            query = f""" INSERT INTO users_texts (user_id, text_id, pb) VALUES (?,?,?); """
+
+            self.cursor.execute(query)
+            self.sqliteConnection.commit()
+        elif int(result[0]) > pb: # New PB is faster than the current PB value   
+            values = [pb, user, text]
+            query = f""" UPDATE users_texts SET pb = ? WHERE user_id = ? and text_id = ?; """
+
+            self.cursor.execute(query)
+            self.sqliteConnection.commit()
 
     def add_user_grammar(self, grammar: int, user: int):
         query = f"INSERT INTO user_grammars (user_id, grammar_id) VALUES ({user}, {grammar});"
@@ -608,40 +456,267 @@ class Database:
             return df
         except Exception as e:
             return None
-
-
+        
     def get_texts_all(self):
         try:
-            query = f""" SELECT t.text_id, t.title, t.author, tt.type_id FROM texts AS t JOIN texts_types_link AS tt ON t.text_id = tt.text_id; """
+            query = f""" SELECT t.text_id, t.title, t.author, t.length, tt.type_id FROM texts AS t JOIN texts_types_link AS tt ON t.text_id = tt.text_id; """
 
             df = pd.read_sql_query(query, self.sqliteConnection)
             type_ids = df.groupby('text_id')
             df_new = df.iloc[[type_ids.groups[i][0] for i in list(type_ids.groups.keys())]]
             df_new['type_id'] = list(type_ids.agg({'type_id': lambda x: list(x)})['type_id'])
+            df_new.columns = ['id', 'title', 'author', 'length', 'type_id']
             return df_new
         except Exception as e:
             return None
 
+    def get_user_texts(self, user: int):
+        texts = self.get_texts_all()
+
+        query = f""" SELECT text_id AS id, pb AS pb FROM users_texts WHERE user_id = {user};"""
+
+        df = pd.read_sql_query(query, self.sqliteConnection)
+        print(texts)
+        print(df)
+        texts_joined = texts.join(df.set_index('id'), on='id')
+
+        return texts_joined
+
+    
+    def createTables(self):
+        levels_table = """ CREATE TABLE IF NOT EXISTS levels (
+            level_id INTEGER NOT NULL,
+            level VARCHAR(3) NOT NULL,
+            PRIMARY KEY(level_id)
+        ) WITHOUT ROWID;""" 
+
+        words_table = """ CREATE TABLE IF NOT EXISTS words (
+            word_id INTEGER NOT NULL,
+            word_ka CHAR(25) NOT NULL,
+            word_hg CHAR(25) NOT NULL,
+            word_en CHAR(100) NOT NULL,
+            level_id INTEGER NOT NULL,
+            PRIMARY KEY (word_id),
+            FOREIGN KEY (level_id) REFERENCES levels(level_id)
+            ) WITHOUT ROWID; """
+        
+        types_table = """ CREATE TABLE IF NOT EXISTS types (
+            type_id INTEGER NOT NULL,
+            type CHAR(25) NOT NULL,
+            PRIMARY KEY (type_id)
+        ) WITHOUT ROWID;"""
+
+        words_types_table = """ CREATE TABLE IF NOT EXISTS word_types (
+            word_id INTEGER NOT NULL,
+            type_id INTEGER NOT NULL,
+            FOREIGN KEY (word_id) REFERENCES words(word_id),
+            FOREIGN KEY (type_id) REFERENCES types(type_id),
+            PRIMARY KEY(word_id, type_id)
+            ) WITHOUT ROWID;"""
+
+        grammars_table = """ CREATE TABLE IF NOT EXISTS grammars (
+            grammar_id INTEGER NOT NULL,
+            grammar_en VARCHAR(50) NOT NULL,
+            grammar_jp VARCHAR(50) NOT NULL,
+            image_url VARCHAR(500) NOT NULL,
+            level_id INTEGER NOT NULL,
+            PRIMARY KEY (grammar_id),
+            FOREIGN KEY (level_id) REFERENCES levels(level_id)
+        ) WITHOUT ROWID;"""
+
+        examples_table = """ CREATE TABLE IF NOT EXISTS examples (
+            example_id INTEGER NOT NULL,
+            example_jp VARCHAR(150) NOT NULL,
+            example_hg VARCHAR(150) NOT NULL,
+            example_en VARCHAR(150) NOT NULL,
+            grammar_id INTEGER NOT NULL,
+            PRIMARY KEY(example_id),
+            FOREIGN KEY (grammar_id) REFERENCES grammar(grammar_id)
+        ) WITHOUT ROWID;"""
+
+        kanji_table = """ CREATE TABLE IF NOT EXISTS kanjis (
+            kanji_id INTEGER NOT NULL,
+            kanji VARCHAR(10) NOT NULL,
+            onyomi VARCHAR(10) NOT NULL,
+            kunyomi VARCHAR(10),
+            meaning VARCHAR(150) NOT NULL,
+            image_url VARCHAR(500) NOT NULL,
+            level_id INTEGER NOT NULL,
+            PRIMARY KEY (kanji_id),
+            FOREIGN KEY (level_id) REFERENCES levels(level_id)
+        ) WITHOUT ROWID;"""
+
+        texts_table = """ CREATE TABLE IF NOT EXISTS texts (
+            text_id INTEGER NOT NULL,
+            title VARCHAR(150) NOT NULL,
+            author VARCHAR(50) NOT NULL,
+            length INTEGER NOT NULL,
+            PRIMARY KEY (text_id)
+        ) WITHOUT ROWID;"""
+
+        text_types_table = """ CREATE TABLE IF NOT EXISTS texts_types (
+            type_id INTEGER NOT NULL,
+            type VARCHAR(50) NOT NULL,
+            PRIMARY KEY (type_id)
+        ) WITHOUT ROWID;"""
+
+        text_types_link_table = """ CREATE TABLE IF NOT EXISTS texts_types_link (
+            text_id INTEGER NOT NULL,
+            type_id INTEGER NOT NULL,
+            PRIMARY KEY(text_id, type_id),
+            FOREIGN KEY (text_id) REFERENCES texts (text_id),
+            FOREIGN KEY (type_id) REFERENCES texts_types (type_id)
+        ) WITHOUT ROWID;"""
+
+        user_texts_table = """ CREATE TABLE IF NOT EXISTS users_texts (
+            user_id INTEGER NOT NULL,
+            text_id INTEGER NOT NULL,
+            pb INTEGER,
+            PRIMARY KEY(user_id, text_id),
+            FOREIGN KEY (user_id) REFERENCES users (user_id),
+            FOREIGN KEY (text_id) REFERENCES texts (text_id)   
+        ) WITHOUT ROWID;"""
+
+        users_table = """ CREATE TABLE IF NOT EXISTS users (
+            user_id INTEGER NOT NULL,
+            date_joined TEXT NOT NULL,
+            PRIMARY KEY (user_id)
+        );"""
+
+        user_grammars_table = """ CREATE TABLE IF NOT EXISTS user_grammars (
+            user_id INTEGER NOT NULL,
+            grammar_id INTEGER NOT NULL,
+            PRIMARY KEY (user_id, grammar_id),
+            FOREIGN KEY (user_id) REFERENCES users (user_id),
+            FOREIGN KEY (grammar_id) REFERENCES grammars (grammar_id),
+            UNIQUE(user_id, grammar_id)
+        );"""
+
+        user_words_table = """ CREATE TABLE IF NOT EXISTS user_words (
+            user_id INTEGER NOT NULL,
+            word_id INTEGER NOT NULL,
+            FOREIGN KEY (user_id) REFERENCES users (user_id),
+            FOREIGN KEY (word_id) REFERENCES words (word_id),
+            UNIQUE(user_id, word_id)
+        );"""
+
+        user_kanjis_table = """ CREATE TABLE IF NOT EXISTS user_kanjis (
+            user_id INTEGER NOT NULL,
+            kanji_id INTEGER NOT NULL,
+            FOREIGN KEY (user_id) REFERENCES users (user_id),
+            FOREIGN KEY (kanji_id) REFERENCES kanjis (kanji_id),
+            UNIQUE(user_id, kanji_id)
+        );"""
+
+        self.cursor.execute(levels_table)
+        self.cursor.execute(words_table)
+        self.cursor.execute(types_table)
+        self.cursor.execute(words_types_table)
+        self.cursor.execute(grammars_table)
+        self.cursor.execute(examples_table)
+        self.cursor.execute(kanji_table)
+        self.cursor.execute(texts_table)
+        self.cursor.execute(text_types_table)
+        self.cursor.execute(text_types_link_table)
+        self.cursor.execute(user_texts_table)
+        self.cursor.execute(users_table)
+        self.cursor.execute(user_grammars_table)
+        self.cursor.execute(user_words_table)
+        self.cursor.execute(user_kanjis_table)
+
+
+        result = self.cursor.fetchall()
+        print(result)
+        
+    def drop_tables(self):
+        query = "DROP TABLE IF EXISTS examples"
+        self.cursor.execute(query)
+        self.sqliteConnection.commit()
+
+        query = "DROP TABLE IF EXISTS grammars"
+        self.cursor.execute(query)
+        self.sqliteConnection.commit()
+
+        query = "DROP TABLE IF EXISTS kanjis"
+        self.cursor.execute(query)
+        self.sqliteConnection.commit()
+
+        query = "DROP TABLE IF EXISTS word_types"
+        self.cursor.execute(query)
+        self.sqliteConnection.commit()
+
+        query = "DROP TABLE IF EXISTS words"
+        self.cursor.execute(query)
+        self.sqliteConnection.commit()
+
+        query = "DROP TABLE IF EXISTS types"
+        self.cursor.execute(query)
+        self.sqliteConnection.commit()
+
+        query = "DROP TABLE IF EXISTS levels"
+        self.cursor.execute(query)
+        self.sqliteConnection.commit()
+
+        query = "DROP TABLE IF EXISTS users_texts"
+        self.cursor.execute(query)
+        self.sqliteConnection.commit()
+
+        query = "DROP TABLE IF EXISTS texts"
+        self.cursor.execute(query)
+        self.sqliteConnection.commit()   
+
+        query = "DROP TABLE IF EXISTS texts_types"
+        self.cursor.execute(query)
+        self.sqliteConnection.commit()    
+
+        query = "DROP TABLE IF EXISTS texts_types_link"
+        self.cursor.execute(query)
+        self.sqliteConnection.commit()     
+
+        query = "DROP TABLE IF EXISTS users"
+        self.cursor.execute(query)
+        self.sqliteConnection.commit()
+
+        query = "DROP TABLE IF EXISTS user_grammars"
+        self.cursor.execute(query)
+        self.sqliteConnection.commit()
+
+        query = "DROP TABLE IF EXISTS user_words"
+        self.cursor.execute(query)
+        self.sqliteConnection.commit()
+
+        query = "DROP TABLE IF EXISTS user_kanjis"
+        self.cursor.execute(query)
+        self.sqliteConnection.commit()
+
 
 import itertools #######################################
+import os
 if __name__ == "__main__":
     db = Database()
-
     db.createTables()
     
     level = 'N1'
     user = 1
 
+    print(db.get_user_texts(user))
+
     # db.insert_text_types()
 
     # texts = ['Test1#Test1#hiragana,katakana']
+    # dir = r"assets\texts"
+    # texts = []
+    # for root, name, files in os.walk(dir):
+    #     for text in files:
+    #         texts.append(text.split(".")[0])
+
     # db.insert_texts_batch(texts)
-    types = db.get_text_types()
-    print(types)
-    stuff = [(types['type_id'].iloc[x], types['type'].iloc[x]) for x in range(types.shape[0])]
-    # stuff = [1, 2, 3]
-    for L in range(len(stuff) + 1):
-        for subset in itertools.combinations(stuff, L):
-            print(subset)
+    # types = db.get_text_types()
+    # print(types)
+    # stuff = [(types['type_id'].iloc[x], types['type'].iloc[x]) for x in range(types.shape[0])]
+    # # stuff = [1, 2, 3]
+    # for L in range(len(stuff) + 1):
+    #     for subset in itertools.combinations(stuff, L):
+    #         print(subset)
     
     db.close()
