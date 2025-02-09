@@ -68,7 +68,8 @@ QPushButton#randomiseButton {
     font-size: 14px;
 }
 
-QLineEdit#selectGrammarSearchBar, selectTextSearchBar {
+QLineEdit#selectGrammarSearchBar,
+selectTextSearchBar {
     min-height: 24px;
 }
 
@@ -105,18 +106,18 @@ QPushButton#changeTimerButton {
 }
 
 QLabel#kanjiSpellKanjiLabel {
-    background-color: rgba(0,0,0,0);
+    background-color: rgba(0, 0, 0, 0);
     font-size: 50px;
 }
 
 QLabel#kanjiSpellEnglishLabel {
     min-height: 100px;
-    background-color: rgba(0,0,0,0);
+    background-color: rgba(0, 0, 0, 0);
     font-size: 20px;
 }
 
 QLabel#kanjiSpellAnswerLabel {
-    background-color: rgba(0,0,0,0);
+    background-color: rgba(0, 0, 0, 0);
     font-size: 32px;
 }
 
@@ -128,22 +129,70 @@ QLineEdit#kanjiSpellAnswerInput {
     font-size: 20px;
 }
 
+QLineEdit#kanjiSpellAnswerInputCorrect {
+    max-width: 250px;
+    min-width: 200px;
+    min-height: 60px;
+    background-color: rgba(74, 219, 54, 1);
+    font-size: 20px;
+}
+
+QLineEdit#kanjiSpellAnswerInputIncorrect {
+    max-width: 250px;
+    min-width: 200px;
+    min-height: 60px;
+    background-color: rgb(219, 62, 54);
+    font-size: 20px;
+}
+
 QPushButton#kanjiSpellEnterButton {
     min-height: 60px;
     min-width: 80px;
     max-width: 100px;
-    background-color: rgba(0,0,0,0);
+    background-color: rgba(0, 0, 0, 0);
     font-size: 14px;
+}
+
+QLabel#wordButtonLabel {
+    min-height: 100%;
+}
+
+QPushButton#wordButtonUnselected {
+    border-radius: 5px;
+    background-color: #cccccc;
+    min-width: 180px;
+    min-height: 120px;
+    font-size: 20px;
+    font-family: Verdana;
+    padding: 0px;
+}
+
+QPushButton#wordButtonUnselected:hover {
+    background-color: #ebebe7;
+}
+
+QPushButton#wordButtonSelected {
+    border-radius: 5px;
+    background-color: #9ccbf5;
+    min-width: 180px;
+    min-height: 120px;
+    font-size: 20px;
+    font-family: Verdana;
+    padding: 0px;
+}
+
+QPushButton#wordButtonSelected:hover {
+    background-color: #b7e3f7;
 }
 
 QLabel#kanjiSpellGameplayTitle {
     font-size: 16px;
-    background-color: rgba(0,0,0,0);
+    background-color: rgba(0, 0, 0, 0);
 }
 
 QLabel#kanjiSpellGameplayLabel {
     font-size: 12px;
-    background-color: rgba(0,0,0,0);
+    background-color: rgba(0, 0, 0, 0);
 }
 
 QWidget#dummyBackgroundWidget {
@@ -178,7 +227,8 @@ QLabel#selectWordFieldEn {
     font-size: 14px;
 }
 
-QLabel#selectWordFieldJp, QLabel#selected {
+QLabel#selectWordFieldJp,
+QLabel#selected {
     font-size: 14px;
 }
 
@@ -199,7 +249,11 @@ QPushButton#toggleHiraganaButton {
     font-size: 14px;
 }
 
-QLabel#pageTitleN1, QLabel#pageTitleN2, QLabel#pageTitleN3, QLabel#pageTitleN4, QLabel#pageTitleN5 {
+QLabel#pageTitleN1,
+QLabel#pageTitleN2,
+QLabel#pageTitleN3,
+QLabel#pageTitleN4,
+QLabel#pageTitleN5 {
     font-size: 28px;
 }
 
@@ -235,7 +289,11 @@ QLabel#modeSelectButtonLabel {
     font-size: 26px;
 }
 
-QLabel#levelPageTitleN1, QLabel#levelPageTitleN2, QLabel#levelPageTitleN3, QLabel#levelPageTitleN4, QLabel#levelPageTitleN5 {
+QLabel#levelPageTitleN1,
+QLabel#levelPageTitleN2,
+QLabel#levelPageTitleN3,
+QLabel#levelPageTitleN4,
+QLabel#levelPageTitleN5 {
     /* font-family: Titillium; */
     width: 300px;
     height: 80px;
@@ -263,7 +321,11 @@ QLabel#levelPageTitleN5 {
 }
 
 
-QPushButton#levelButtonN1, QPushButton#levelButtonN2, QPushButton#levelButtonN3, QPushButton#levelButtonN4, QPushButton#levelButtonN5 {
+QPushButton#levelButtonN1,
+QPushButton#levelButtonN2,
+QPushButton#levelButtonN3,
+QPushButton#levelButtonN4,
+QPushButton#levelButtonN5 {
     /* min-height: 50px;
     font-size: 22px;
     min-width: 425px; */
@@ -293,6 +355,94 @@ QPushButton#levelButtonN4 {
 QPushButton#levelButtonN5 {
     background-color: N5color;
 }
+
+/* #################################     KANA_RACE_PAGE     ################################# */
+
+QWidget#selectTextField {
+    background-color: #eeeeee;
+    border-radius: 3px;
+    max-width: 350px;
+}
+
+QLabel#textTitleLabel {
+    font-size: 24px;
+    max-height: 60px;
+}
+
+QLabel#personalBestLabel {
+    font-size: 18px;
+}
+
+QLabel#timer {
+    font-size: 14px;
+}
+
+QPushButton#playButton {
+    max-width: 35px;
+    min-height: 35px;
+    max-height: 35px;
+}
+
+QLabel#kanaRacePreviousLine {
+    font-size: 18px;
+    letter-spacing: 3px;
+    min-width: 80%;
+}
+
+QLabel#kanaRaceCurrentLine {
+    font-size: 18px;
+    letter-spacing: 3px;
+}
+
+QLabel#kanaRaceNextLine {
+    font-size: 18px;
+    letter-spacing: 3px;
+}
+
+QWidget#kanaRaceLineWidget {
+    background-color: #dfdfdf;
+    max-height: 50px;
+
+}
+
+QLineEdit#kanaRaceInput {
+    letter-spacing: 3px;
+}
+
+QWidget#kanaRaceCharacterLabelCurrent {
+    font-size: 18px;
+    min-width: 40px;
+    min-height: 40px;
+    max-width: 40px;
+    max-height: 40px;
+    margin: 0px;
+    background-color: #c5c5c5;
+    border-radius: 2px;
+}
+
+QWidget#kanaRaceCharacterLabelNextPrevious {
+    font-size: 14px;
+    min-width: 40px;
+    min-height: 40px;
+    max-width: 40px;
+    max-height: 40px;
+    margin: 0px;
+    background-color: #dfdfdf;
+    border-radius: 2px;
+}
+
+QLineEdit#kanaRaceInputBox {
+    font-size: 18px;
+    min-width: 40px;
+    min-height: 40px;
+    max-width: 40px;
+    max-height: 40px;
+    margin: 0px;
+    background-color: #c5c5c5;
+    border-radius: 2px;
+}
+
+/* ############################################################################## */
 
 /* .levelButton {
     background-color: var(--color);

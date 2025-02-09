@@ -243,8 +243,28 @@ class SelectTextField(QWidget):
         self.parent().textSelected(self.texts.iloc[idx])
 
 
+class CharacterInputs(QWidget):
+    def __init__(self):
+        super().__init__()
+        # self.widget = QWidget()
+        self.widget_layout = QHBoxLayout()
+
+        self.input_box = QLineEdit()
+        self.input_box.setAlignment(Qt.AlignmentFlag.AlignCenter)
+        self.input_box.setObjectName("kanaRaceInputBox")
+        self.input_box.setMaxLength(3)
+        self.widget_layout.addWidget(self.input_box)
+
+        # self.widget.setLayout(self.widget_layout)
+
+        self.setLayout(self.widget_layout)
+
+    def setFocus(self):
+        self.input_box.setFocus()
+
+
 class CharacterLabel(QWidget):
-    def __init__(self, kana=None, romaji=None):
+    def __init__(self, objName, kana=None, romaji=None):
         super().__init__()
         self.kana = kana
         self.romaji = romaji
@@ -252,10 +272,11 @@ class CharacterLabel(QWidget):
                        "incorrect": False, "correct": False}
 
         self.widget = QWidget()
-        self.widget.setObjectName("kanaRaceCharacterLabel")
+        self.widget.setObjectName(objName)
 
         self.widget_label = QLabel(self.kana)
         self.widget_layout = QHBoxLayout()
+        self.widget_layout.setAlignment(Qt.AlignmentFlag.AlignCenter)
         self.widget_layout.addWidget(self.widget_label)
 
         self.widget.setLayout(self.widget_layout)
@@ -268,6 +289,7 @@ class CharacterLabel(QWidget):
 
     def setKana(self, kana):
         self.kana = kana
+        self.widget_label.setText(self.kana)
 
     def setRomaji(self, romaji):
         self.romaji = romaji
@@ -288,7 +310,16 @@ class PlayArea(QWidget):
         self.started = False
         self.curr_char = 0
         self.curr_line_chars = {"kana": [], "romaji": []}
+
         self.chars_per_line = 15
+        self.current_characters = [CharacterLabel("kanaRaceCharacterLabelCurrent", kana="")
+                                   for i in range(self.chars_per_line)]
+        self.next_characters = [CharacterLabel("kanaRaceCharacterLabelNextPrevious", kana="")
+                                for i in range(self.chars_per_line)]
+        self.previous_characters = [CharacterLabel("kanaRaceCharacterLabelNextPrevious", kana="")
+                                    for i in range(self.chars_per_line)]
+        self.current_inputs = [CharacterInputs()
+                               for i in range(self.chars_per_line)]
 
         self.text_selected = False
 
@@ -335,77 +366,98 @@ class PlayArea(QWidget):
 
         self.play_container.addLayout(self.race_info_buttons_container)
 
+        self.text_widget = QWidget()
+
         self.text_container = QVBoxLayout()
+        self.text_container.setContentsMargins(0, 0, 0, 0)
+        self.text_container.setAlignment(
+            Qt.AlignmentFlag.AlignLeft)
 
-        self.input_box = QLineEdit()
-        self.input_box.setObjectName("kanaRaceInput")
-        self.input_box.textEdited.connect(self.textInputted)
+        # self.input_box = QLineEdit()
+        # self.input_box.setObjectName("kanaRaceInput")
+        # self.input_box.textEdited.connect(self.textInputted)
 
-        self.jp_line_previous = QLabel("")
-        self.jp_line_previous.setObjectName("kanaRacePreviousLine")
-        self.previous_line_widget = QWidget()
-        self.previous_line_widget.setObjectName("kanaRaceLineWidget")
-        self.previous_line_widget_layout = QHBoxLayout()
-        self.previous_line_widget_layout.addWidget(self.jp_line_previous)
-        self.previous_line_widget.setLayout(self.previous_line_widget_layout)
+        self.previous_line_container = QHBoxLayout()
+        self.next_line_container = QHBoxLayout()
+
+        self.current_line_container = QVBoxLayout()
+        self.current_line_character_container = QHBoxLayout()
+        self.current_line_character_container.setContentsMargins(0, 0, 0, 0)
+        # self.current_line_character_container.setAlignment(
+        #     Qt.AlignmentFlag.AlignLeft)
+        self.current_line_input_container = QHBoxLayout()
+        self.current_line_input_container.setContentsMargins(0, 0, 0, 0)
+        # self.current_line_input_container.setAlignment(
+        #     Qt.AlignmentFlag.AlignLeft)
+        for i in range(self.chars_per_line):
+            self.current_line_character_container.addWidget(
+                self.current_characters[i])
+            self.current_line_input_container.addWidget(
+                self.current_inputs[i])
+
+            self.previous_line_container.addWidget(self.previous_characters[i])
+            self.next_line_container.addWidget(self.next_characters[i])
+
+        self.current_line_container.addLayout(
+            self.current_line_character_container)
+        self.current_line_container.addLayout(
+            self.current_line_input_container)
+
+        self.text_container.addLayout(self.previous_line_container)
+        self.text_container.addLayout(self.current_line_container)
+        self.text_container.addLayout(self.next_line_container)
+
+        # self.jp_line_previous = QLabel("")
+        # self.jp_line_previous.setObjectName("kanaRacePreviousLine")
+        # self.previous_line_widget = QWidget()
+        # self.previous_line_widget.setObjectName("kanaRaceLineWidget")
+        # self.previous_line_widget_layout = QHBoxLayout()
+        # self.previous_line_widget_layout.addWidget(self.jp_line_previous)
+        # self.previous_line_widget.setLayout(self.previous_line_widget_layout)
 
         # self.jp_line_current = QLabel("")
         # self.jp_line_current.setObjectName("kanaRaceCurrentLine")
-        self.current_line_widget = QWidget()
-        self.current_line_widget.setObjectName("kanaRaceLineWidget")
-        self.current_line_widget_layout = QHBoxLayout()
+        # self.current_line_widget = QWidget()
+        # self.current_line_widget.setObjectName("kanaRaceLineWidget")
+        # self.current_line_widget_layout = QHBoxLayout()
         # self.current_line_widget_layout.addWidget(self.jp_line_current)
 
-        self.jp_line_current = [CharacterLabel()
-                                for i in range(self.chars_per_line)]
+        # self.jp_line_current = [CharacterLabel()
+        #                         for i in range(self.chars_per_line)]
 
-        for i in self.jp_line_current:
-            self.current_line_widget_layout.addWidget(i)
-        self.current_line_widget.setLayout(self.current_line_widget_layout)
+        # for i in self.jp_line_current:
+        #     self.current_line_widget_layout.addWidget(i)
+        # self.current_line_widget.setLayout(self.current_line_widget_layout)
 
-        self.jp_line_next = QLabel("")
-        self.jp_line_next.setObjectName("kanaRaceNextLine")
-        self.next_line_widget = QWidget()
-        self.next_line_widget.setObjectName("kanaRaceLineWidget")
-        self.next_line_widget_layout = QHBoxLayout()
-        self.next_line_widget_layout.addWidget(self.jp_line_next)
-        self.next_line_widget.setLayout(self.next_line_widget_layout)
+        # self.jp_line_next = QLabel("")
+        # self.jp_line_next.setObjectName("kanaRaceNextLine")
+        # self.next_line_widget = QWidget()
+        # self.next_line_widget.setObjectName("kanaRaceLineWidget")
+        # self.next_line_widget_layout = QHBoxLayout()
+        # self.next_line_widget_layout.addWidget(self.jp_line_next)
+        # self.next_line_widget.setLayout(self.next_line_widget_layout)
 
-        self.text_container.addWidget(self.previous_line_widget)
-        self.text_container.addWidget(self.current_line_widget)
-        self.text_container.addWidget(self.input_box)
-        self.text_container.addWidget(self.next_line_widget)
+        # self.text_container.addWidget(self.previous_line_widget)
+        # self.text_container.addWidget(self.current_line_widget)
+        # self.text_container.addWidget(self.input_box)
+        # self.text_container.addWidget(self.next_line_widget)
 
-        self.play_container.addLayout(self.text_container)
+        self.text_widget.setLayout(self.text_container)
+
+        # self.play_container.addLayout(self.text_container)
+        self.play_container.addWidget(self.text_widget)
 
         self.container.addLayout(self.play_container)
-
-        # self.container.addLayout(self.text_container)
 
         self.container.addWidget(self.select_text_field)
 
         self.setLayout(self.container)
 
     def textInputted(self, text):
-        char_in_list_index = self.curr_char % self.chars_per_line
-        total_string = "".join(
-            map(str, self.curr_line_chars['romaji'][:char_in_list_index]))
-        new_text = text.removeprefix(total_string)
-        print(f"New text: {new_text}")
-        print(
-            f"Curr char: {self.curr_line_chars['kana'][char_in_list_index]} {self.curr_line_chars['romaji'][char_in_list_index]}")
-        for i in range(len(new_text)):
-            if new_text[i] != self.curr_line_chars['romaji'][char_in_list_index]:
-                print("Wrong")
-
-        if len(new_text) == len(self.curr_line_chars['romaji'][char_in_list_index]):
-            print("Character completed")
-            self.curr_char += 1
-            print(self.curr_char)
-        # for i in range(char_in_list_index):
-        #     total_string += self.curr_line_chars['romaji'][i]
+        pass
 
     def textSelected(self, text_info):
+        self.curr_char = 0
         self.text_selected = True
         self.text_title = text_info['title']
         self.text_author = text_info['author']
@@ -417,11 +469,42 @@ class PlayArea(QWidget):
         with open(r"assets\texts\Triumphant Return Festival#Kyoka Izumi#hiragana#6702.txt", "r", encoding="utf-16") as f:
             self.text = f.read()
 
-        # divisor is determined by QLabel font size to avoid word wrapping
-        self.chars_per_line = self.jp_line_next.width() // 18
-        self.populateTextLabels()
+        self.setLines()
 
-    def getRomaji(self, text):
+    def setLines(self):
+
+        # Previous characters
+        if not self.curr_line_chars['kana'] == []:
+            for i in range(len(self.curr_line_chars['kana'])):
+                self.previous_characters[i].setKana(
+                    self.curr_line_chars['kana'])
+
+        # Current characters
+        if self.curr_char == 0:  # If this is the first line, there will be no "next characters" to become the current characters
+            new_line = self.text[self.curr_char:min(
+                self.curr_char+self.chars_per_line, self.text_length)]
+        else:
+            new_line = "".join(
+                map(lambda x: x.getKana(), self.next_characters))
+
+        self.convertToRomaji(new_line)
+        for i in range(len(self.curr_line_chars['kana'])):
+            self.current_characters[i].setKana(
+                self.curr_line_chars['kana'][i])
+            self.current_characters[i].setRomaji(
+                self.curr_line_chars['romaji'][i])
+
+        # Next characters
+        for i in range(self.curr_char+len(self.curr_line_chars['kana']), min(self.text_length, self.curr_char+len(self.curr_line_chars['kana'])+self.chars_per_line)):
+            print(i)
+            print(i-self.curr_char)
+            print(self.text[i])
+            self.next_characters[i-(self.curr_char +
+                                    len(self.curr_line_chars['kana']))].setKana(self.text[i])
+
+        self.current_inputs[0].setFocus()
+
+    def convertToRomaji(self, text):
         kks = pykakasi.kakasi()
         # text = "紫の幕、くれないの旗、空の色の青く晴れたる"
         small_tsu = False
@@ -439,19 +522,6 @@ class PlayArea(QWidget):
                     kks.convert(char)[0]['orig'])
                 self.curr_line_chars["romaji"].append(
                     kks.convert(char)[0]['hepburn'])
-
-    def populateTextLabels(self):
-        # TODO:
-        # Add check to stop last character on line being small tsu
-        if self.curr_char < self.text_length:
-            if self.curr_char >= self.chars_per_line:  # do not need to use previous line QLabel
-                self.jp_line_previous = self.jp_line_current.text()
-            self.jp_line_current.setText(self.text[self.curr_char:min(
-                self.text_length, self.curr_char+self.chars_per_line)])
-            self.jp_line_next.setText(self.text[self.curr_char+self.chars_per_line:min(
-                self.text_length, self.curr_char+(self.chars_per_line)*2)])
-
-            self.getRomaji(self.jp_line_current.text())
 
     def startTimer(self):
         pass
