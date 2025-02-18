@@ -1,6 +1,6 @@
 from PyQt6.QtCore import QSize, Qt
 from PyQt6.QtWidgets import (
-    QApplication, QMainWindow, QPushButton, QLabel, 
+    QApplication, QMainWindow, QPushButton, QLabel,
     QLineEdit, QVBoxLayout, QHBoxLayout, QWidget, QToolBar,
     QStatusBar, QStackedLayout, QGridLayout, QCheckBox, QMenu,
     QDialog, QDialogButtonBox, QComboBox, QListWidget, QListWidgetItem
@@ -25,7 +25,8 @@ class StartButton(QWidget):
         self.start_label = QLabel('Start')
         # self.setFontSize(self.start_label, 18)
         self.start_button_layout.addWidget(self.start_label)
-        self.start_button.setCursor(QCursor(QtCore.Qt.CursorShape.PointingHandCursor))
+        self.start_button.setCursor(
+            QCursor(QtCore.Qt.CursorShape.PointingHandCursor))
         # self.start_button.setProperty("class", "button")
         self.start_button.setLayout(self.start_button_layout)
         self.start_button.clicked.connect(self.startBtnPressed)
@@ -44,9 +45,10 @@ class StartButton(QWidget):
         font.setPointSize(size)
         obj.setFont(font)
         return obj
-    
+
+
 class QCustomListWidget(QWidget):
-    def __init__ (self, idx, jp, en, selected, parent = None):
+    def __init__(self, idx, jp, en, selected, parent=None):
         super(QCustomListWidget, self).__init__(parent)
         self.idx = idx
         self.text_vbox = QVBoxLayout()
@@ -70,7 +72,7 @@ class QCustomListWidget(QWidget):
         self.setLayout(self.text_vbox)
 
     def updateStyle(self):
-        if self.selected: # If item is selected when it is pressed, it should now be displayed as unselected
+        if self.selected:  # If item is selected when it is pressed, it should now be displayed as unselected
             # self.jp_text.setStyleSheet(self.selected_style)
             # self.en_text.setStyleSheet(self.selected_style)
             # pass
@@ -98,20 +100,18 @@ class QCustomListWidget(QWidget):
     def clicked(self):
         self.selected = not self.selected
         self.updateStyle()
-        
 
     def setSelected(self, s):
         if type(s) == bool:
             self.selected = s
             self.updateStyle()
-            
-            
+
     def getSelected(self):
         return self.selected
 
     def getIdx(self):
         return self.idx
-    
+
 
 class SelectWordField(QWidget):
     def __init__(self, parent=None, words=None):
@@ -128,7 +128,8 @@ class SelectWordField(QWidget):
         # self.select_all_btn.setMaximumWidth(100)
         # self.select_all_btn.setProperty("class", "button")
         self.select_all_btn.setObjectName("selectAllButton")
-        self.select_all_btn.setCursor(QCursor(QtCore.Qt.CursorShape.PointingHandCursor))
+        self.select_all_btn.setCursor(
+            QCursor(QtCore.Qt.CursorShape.PointingHandCursor))
         self.select_all_btn.clicked.connect(self.selectAllBtnPressed)
         self.select_all_pressed = False
 
@@ -136,7 +137,8 @@ class SelectWordField(QWidget):
 
         self.list_widget = QListWidget()
         self.list_widget.setMinimumWidth(300)
-        self.list_items = [QCustomListWidget(idx=words['id'].iloc[i], jp=words['ka'].iloc[i], en=words['en'].iloc[i], selected=False) for i in range(self.words.shape[0])]
+        self.list_items = [QCustomListWidget(idx=words['id'].iloc[i], jp=words['ka'].iloc[i],
+                                             en=words['en'].iloc[i], selected=False) for i in range(self.words.shape[0])]
         for item in self.list_items:
             item.setObjectName("selectWordListWidget")
             my_list_widget = QListWidgetItem(self.list_widget)
@@ -154,7 +156,8 @@ class SelectWordField(QWidget):
         self.setLayout(self.outer_container)
 
     def getChosenWords(self):
-        word_ids = [word.getIdx() for word in self.list_items if word.getSelected()]
+        word_ids = [word.getIdx()
+                    for word in self.list_items if word.getSelected()]
         return word_ids
         # return self.words.iloc[np.where(self.words['id'] in word_ids)]
 

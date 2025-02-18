@@ -361,12 +361,16 @@ QPushButton#levelButtonN5 {
 QWidget#selectTextField {
     background-color: #eeeeee;
     border-radius: 3px;
-    max-width: 350px;
+    /* max-width: 350px; */
 }
 
 QLabel#textTitleLabel {
     font-size: 24px;
     max-height: 60px;
+}
+
+QLabel#authorLabel {
+    font-size: 20px;
 }
 
 QLabel#personalBestLabel {
@@ -409,7 +413,23 @@ QLineEdit#kanaRaceInput {
     letter-spacing: 3px;
 }
 
-QWidget#kanaRaceCharacterLabelCurrent {
+QLabel#kanaRaceCharacterLabelCurrent {
+    color: black;
+}
+
+QLabel#kanaRaceCharacterLabelCurrentSelected {
+    color: rgb(38, 53, 139)
+}
+
+QLabel#kanaRaceCharacterLabelCurrentCorrect {
+    color: rgb(73, 133, 73)
+}
+
+QLabel#kanaRaceCharacterLabelCurrentIncorrect {
+    color: rgb(219, 62, 54)
+}
+
+QWidget#kanaRaceCharacterLabelWidgetCurrent {
     font-size: 18px;
     min-width: 40px;
     min-height: 40px;
@@ -418,9 +438,10 @@ QWidget#kanaRaceCharacterLabelCurrent {
     margin: 0px;
     background-color: #c5c5c5;
     border-radius: 2px;
+
 }
 
-QWidget#kanaRaceCharacterLabelNextPrevious {
+QWidget#kanaRaceCharacterLabelWidgetNextPrevious {
     font-size: 14px;
     min-width: 40px;
     min-height: 40px;
@@ -441,6 +462,7 @@ QLineEdit#kanaRaceInputBox {
     background-color: #c5c5c5;
     border-radius: 2px;
 }
+
 
 /* ############################################################################## */
 
