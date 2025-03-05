@@ -87,6 +87,12 @@ class ExamplesField(QWidget):
             for i in reversed(range(self.vbox.count())): 
                 self.vbox.itemAt(i).widget().setParent(None)
 
+            if self.jp_hidden:
+                self.setJpHiddenText()
+            
+            if self.en_hidden:
+                self.setEnHiddenText()
+
             for i in range(len(self.examples)):
                 jp = QLabel(self.examples[i].getJp(), alignment=Qt.AlignmentFlag.AlignCenter)
                 jp.setWordWrap(True)
@@ -103,22 +109,27 @@ class ExamplesField(QWidget):
                 en.setFont(font)
                 self.vbox.addWidget(en)
                 blank = QLabel()
-                self.vbox.addWidget(blank)
+                self.vbox.addWidget(blank)      
+
+
+    def setJpHiddenText(self):
+        for i in range(len(self.examples)):
+            self.examples[i].hideJp()
 
     def hideJp(self):
         if not self.examples is None:
             self.jp_hidden = True
-            for i in range(len(self.examples)):
-                self.examples[i].hideJp()
-
+            self.setJpHiddenText()
             self.update()
+
+    def setEnHiddenText(self):
+        for i in range(len(self.examples)):
+            self.examples[i].hideEn()
 
     def hideEn(self):
         if not self.examples is None:
             self.en_hidden = True
-            for i in range(len(self.examples)):
-                self.examples[i].hideEn()
-
+            self.setEnHiddenText()
             self.update()
 
     def showJp(self):
@@ -193,6 +204,7 @@ class SelectGrammarField(QWidget):
 
         self.search_bar = QLineEdit()
         self.search_bar.setObjectName("selectGrammarSearchBar")
+        self.search_bar.textChanged.connect(self.filterList)
 
         self.random_btn = QPushButton('Randomise')
         # self.random_btn.setMaximumWidth(100)
@@ -208,7 +220,37 @@ class SelectGrammarField(QWidget):
         # self.outer_container.addWidget(self.random_btn)
 
         self.list_widget = QListWidget()
-        self.list_items = [QCustomListWidget(i+1, grammars['jp'].iloc[i], grammars['en'].iloc[i], grammars['completed'].iloc[i]) for i in range(self.grammars.shape[0])]
+        self.filterList()
+        # self.list_items = [QCustomListWidget(i+1, self.grammars['jp'].iloc[i], self.grammars['en'].iloc[i], self.grammars['completed'].iloc[i]) for i in range(self.grammars.shape[0])]
+        # for item in self.list_items:
+        #     my_list_widget = QListWidgetItem(self.list_widget)
+        #     # Set size hint
+        #     my_list_widget.setSizeHint(item.sizeHint())
+        #     # Add QListWidgetItem into QListWidget
+        #     self.list_widget.addItem(my_list_widget)
+        #     self.list_widget.setItemWidget(my_list_widget, item)
+        # self.list_widget.addItems([f"{grammars['jp'].iloc[i]} | {grammars['en'].iloc[i]}" for i in range(grammars.shape[0])])
+        self.list_widget.currentRowChanged.connect(self.rowChanged)
+
+        self.widget_layout.addWidget(self.list_widget)
+
+        widget.setLayout(self.widget_layout)
+        self.outer_container.addWidget(widget)
+
+        self.setLayout(self.outer_container)
+
+    def filterList(self, text=""):
+        ## 
+        # TODO: Speed this up by
+        ##
+
+        self.list_widget.clear()
+        self.list_items = []
+        for i in range(self.grammars.shape[0]):
+            if text in self.grammars['jp'].iloc[i] or text in self.grammars['en'].iloc[i]:
+                self.list_items.append(QCustomListWidget(i+1, self.grammars['jp'].iloc[i], self.grammars['en'].iloc[i], self.grammars['completed'].iloc[i]))
+
+        # print(self.list_items[0].jp_text)
         for item in self.list_items:
             my_list_widget = QListWidgetItem(self.list_widget)
             # Set size hint
@@ -216,18 +258,7 @@ class SelectGrammarField(QWidget):
             # Add QListWidgetItem into QListWidget
             self.list_widget.addItem(my_list_widget)
             self.list_widget.setItemWidget(my_list_widget, item)
-        # self.list_widget.addItems([f"{grammars['jp'].iloc[i]} | {grammars['en'].iloc[i]}" for i in range(grammars.shape[0])])
-        self.list_widget.currentRowChanged.connect(self.rowChanged)
 
-        self.widget_layout.addWidget(self.list_widget)
-        # self.widget_layout.setProperty("class", "select")
-
-        # with open(styles, "r") as f:
-        #     self.setStyleSheet(f.read())
-        widget.setLayout(self.widget_layout)
-        self.outer_container.addWidget(widget)
-
-        self.setLayout(self.outer_container)
 
     def updateItemCompletion(self, idx, state):
         self.list_items[idx].setStyle(state)

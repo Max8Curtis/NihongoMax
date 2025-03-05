@@ -12,14 +12,15 @@ from database import Database
 from assets.tools import Tools
 
 styles = "assets\styles\styles.css"
-buttons = {1: {"title": "New lesson", "icon": r"assets\images\new_lesson_icon.jpg", "display": True}, 2: {"title": "Daily review", "icon": r"assets\images\daily_review_icon-removebg-preview.png", "display": True}, 3: {"title": "Translation quiz", "icon": r"assets\images\translation_icon-removebg-preview.png", "display": True}, 4: {"title": "Word match", "icon": r"assets\images\word_match_icon-removebg-preview.png", "display": True}, 5: {"title": "Word fill", "icon": r"assets\images\new_lesson_icon.jpg", "display": False}, 6: {"title": "Kanji spell", "icon": r"assets\images\kanji_spell_icon.png", "display": True}, 7: {"title": "Kana race", "icon": r"assets\images\new_lesson_icon.jpg", "display": True}}
+buttons = {1: {"title": "New lesson", "icon": r"assets\images\new_lesson_icon.jpg", "display": True, "enabled": True}, 2: {"title": "Daily review", "icon": r"assets\images\daily_review_icon-removebg-preview.png", "display": True, "enabled": False}, 3: {"title": "Translation quiz", "icon": r"assets\images\translation_icon-removebg-preview.png", "display": True, "enabled": False}, 4: {"title": "Word match", "icon": r"assets\images\word_match_icon-removebg-preview.png", "display": True, "enabled": True}, 5: {"title": "Word fill", "icon": r"assets\images\new_lesson_icon.jpg", "display": False, "enabled": False}, 6: {"title": "Kanji spell", "icon": r"assets\images\kanji_spell_icon.png", "display": True, "enabled": True}, 7: {"title": "Kana race", "icon": r"assets\images\new_lesson_icon.jpg", "display": True, "enabled": True}}
 tools = Tools()
 
 class ModeSelectButton(QWidget):
-    def __init__(self, id):
+    def __init__(self, id, enabled=True):
         super().__init__()
 
         self.id = id
+        self.enabled = enabled
 
         self.button = QPushButton()
         self.button.setObjectName("modeSelectButton")
@@ -43,6 +44,7 @@ class ModeSelectButton(QWidget):
         # self.button.setProperty("class", "levelButton")
         # self.button.setProperty("class", "")
         self.button.setCursor(QCursor(QtCore.Qt.CursorShape.PointingHandCursor))
+        self.button.setEnabled(self.enabled)
         self.button.clicked.connect(self.buttonClicked)
 
         self.layout = QHBoxLayout()
@@ -181,7 +183,7 @@ class LevelPage(QWidget):
         for b in range(len(list(buttons.keys()))):
             idx = list(buttons.keys())[b]
             if buttons[idx]['display']:
-                self.buttons.append(ModeSelectButton(idx))
+                self.buttons.append(ModeSelectButton(idx, buttons[idx]['enabled']))
             
         self.buttonLayout.addWidget(self.buttons[0], 0, 0, 1, 3)
         self.buttonLayout.addWidget(self.buttons[5], 0, 4, 1, 3)

@@ -9,6 +9,7 @@ import pykakasi
 import itertools
 import pandas as pd
 from os import path
+import random
 
 from PyQt6.QtCore import QSize, Qt, QTimer
 from PyQt6.QtWidgets import (
@@ -87,7 +88,7 @@ class ResetButton(QWidget):
         self.setLayout(self.layout)
 
     def buttonClicked(self):
-        self.parent().reset()
+        self.parent().resetBtnPressed()
 
 
 class PlayButton(QWidget):
@@ -265,12 +266,23 @@ class SelectTextField(QWidget):
         return type_labels
 
     def randomBtnPressed(self):
-        pass
+        # Can only randomly select if there is at least one text shown in list
+        if len(self.list_items) > 0:
+            random_id = random.randint(0, len(self.list_items)-1) # Only select randomly from items currently being shown
+            self.list_widget.setCurrentRow(random_id)
+            self.rowChanged(random_id)
 
     def rowChanged(self, idx):
-        # CHECK THIS PASSES THE CORRECT TEXT INFO EVEN WHEN LIST IS FILTERED (IDX MAY NOT BE DATAFRAME INDEX)
-        # print(self.texts.iloc[idx])
-        self.parent().textSelected(self.texts.iloc[idx])
+        # idx is the index of the selected row in the list view widget, not the text's id
+        
+        # idx is -1 when no item is selected, so when the list is refreshed when the type is changed, the 'current row' changes to None
+        if not idx == -1:
+            # Pass selected text information to parent
+            print(self.texts)
+            print(idx)
+            print(f"{self.texts['id']}, {self.list_items[idx].getIdx()}")
+            self.parent().textSelected(
+                self.texts[self.texts['id'] == self.list_items[idx].getIdx()])
 
     def updateTextPB(self, idx, pb):
         # Update the PB displayed on screen for text with ID idx
@@ -278,7 +290,7 @@ class SelectTextField(QWidget):
         print(self.texts)
         print(pb)
         print(idx)
-        self.texts[self.texts['id'] == idx]['pb'] = pb
+        self.texts.loc[self.texts['id'] == idx, 'pb'] = pb
         for i in range(len(self.list_items)):
             if self.list_items[i].getIdx() == idx:
                 self.list_items[i].updatePb(pb)
@@ -668,11 +680,11 @@ class PlayArea(QWidget):
         self.reset()
         self.curr_char = 0
         self.text_selected = True
-        self.text_id = text_info['id']
-        self.text_title = text_info['title']
-        self.text_author = text_info['author']
-        self.text_length = text_info['length']
-        self.text_pb = text_info['pb']
+        self.text_id = text_info['id'].iloc[0]
+        self.text_title = text_info['title'].iloc[0]
+        self.text_author = text_info['author'].iloc[0]
+        self.text_length = text_info['length'].iloc[0]
+        self.text_pb = text_info['pb'].iloc[0]
 
         self.text_title_label.setText(self.text_title)
         self.author_label.setText(self.text_author)
@@ -784,6 +796,10 @@ class PlayArea(QWidget):
         self.curr_selected_char = 0
         self.curr_line_chars = {"kana": [], "romaji": []}
         self.resetCharacterClasses()
+
+    def resetBtnPressed(self):
+        self.reset()
+        self.setLines()
 
     def stopTimer(self):
         self.timer.stop()
