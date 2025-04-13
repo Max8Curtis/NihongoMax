@@ -2,7 +2,7 @@ from PyQt6.QtCore import QSize, Qt
 from PyQt6.QtWidgets import (
     QApplication, QMainWindow, QPushButton, QLabel,
     QLineEdit, QVBoxLayout, QHBoxLayout, QWidget, QToolBar,
-    QStatusBar, QStackedLayout
+    QStatusBar, QStackedLayout, QMessageBox, QDialog, QDialogButtonBox, QTabWidget, QFormLayout, QDateEdit, QListWidget
 )
 from PyQt6.QtGui import QPixmap, QAction, QIcon
 from pages.home import Home
@@ -12,6 +12,7 @@ from pages.lesson_page import LessonPage
 from pages.word_match_page import WordMatchPage
 from pages.kanji_spell_page import KanjiSpellPage
 from pages.kana_race_page import KanaRacePage
+from database import Database
 
 # Only needed for access to command line arguments
 import sys
@@ -29,6 +30,78 @@ print(f"Operating system is: {os.name}")
 if os.name == "nt":
     appID = 'microsoft.windows.nihongomax.v1'
     ctypes.windll.shell32.SetCurrentProcessExplicitAppUserModelID(appID)
+
+class QCustomListWidget(QWidget):
+    def __init__(self, idx=None):
+        super(QCustomListWidget, self).__init__()
+
+class WordsPage(QWidget):
+    def __init__(self, user):
+        super().__init__()
+        self.user = user
+        self.db = Database()
+        self.decks = self.db.get_user_decks(self.user)
+        self.layout = QVBoxLayout()
+
+        self.list_widget = QListWidget()
+        self.list_widget.setMinimumWidth(300)
+        self.list_items = [QCustomListWidget(idx=i) for i in range(self.decks.shape[0])]
+        for item in self.list_items:
+            item.setObjectName("selectWordListWidget")
+            my_list_widget = QListWidgetItem(self.list_widget)
+            # Set size hint
+            my_list_widget.setSizeHint(item.sizeHint())
+            # Add QListWidgetItem into QListWidget
+            self.list_widget.addItem(my_list_widget)
+            self.list_widget.setItemWidget(my_list_widget, item)
+
+
+
+class ManageAssetsDialog(QDialog):
+    def __init__(self, entry=0):
+        super().__init__()
+        
+        self.setWindowTitle("Manage Assets")
+
+        QBtn = (
+            QDialogButtonBox.StandardButton.Ok | QDialogButtonBox.StandardButton.Cancel
+        )
+
+        self.buttonBox = QDialogButtonBox(QBtn)
+        self.buttonBox.accepted.connect(self.accept)
+        self.buttonBox.rejected.connect(self.reject)
+
+        main_layout = QVBoxLayout(self)
+        self.setLayout(main_layout)
+
+        # create a tab widget
+        tab = QTabWidget(self)
+
+        # personal page
+        words_page = QWidget(self)
+        # layout = QFormLayout()
+        # personal_page.setLayout(layout)
+        # layout.addRow('First Name:', QLineEdit(self))
+        # layout.addRow('Last Name:', QLineEdit(self))
+        # layout.addRow('DOB:', QDateEdit(self))
+
+        # contact pane
+        kanji_page = QWidget(self)
+        # layout = QFormLayout()
+        # contact_page.setLayout(layout)
+        # layout.addRow('Phone Number:', QLineEdit(self))
+        # layout.addRow('Email Address:', QLineEdit(self))
+
+        grammar_page = QWidget(self)
+
+        # add pane to the tab widget
+        tab.addTab(words_page, 'Words')
+        tab.addTab(kanji_page, 'Kanji')
+        tab.addTab(grammar_page, 'Grammar')
+
+        main_layout.addWidget(tab)
+
+        main_layout.addWidget(self.buttonBox)
 
 
 class MainWindow(QMainWindow):
@@ -104,7 +177,8 @@ class MainWindow(QMainWindow):
         print("click", s)
 
     def onWordsButtonClick(self, s):
-        print("click", s)
+        dlg = ManageAssetsDialog()
+        dlg.exec()
 
     def onKanjiButtonClick(self, s):
         print("click", s)
